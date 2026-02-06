@@ -23,13 +23,15 @@ export interface Property {
   daysOverdue?: number;
 }
 
-export interface Employee {
+export interface Admin {
   id: string;
   name: string;
+  email: string;
   phone: string;
-  assignedProperties: number;
-  todaysTasks: number;
-  status: 'active' | 'offline';
+  role: 'super-admin' | 'admin';
+  assignedCompanies: string[];
+  lastLogin: string;
+  status: 'active' | 'inactive';
 }
 
 export interface Collection {
@@ -49,7 +51,7 @@ export interface Request {
   requestDate: string;
   reason: 'used' | 'guest-change' | 'emergency';
   priority: 'normal' | 'high' | 'urgent';
-  assignedEmployee: string | null;
+  assignedAdmin: string | null;
   status: 'pending' | 'approved' | 'assigned' | 'completed';
 }
 
@@ -280,38 +282,127 @@ export const mockProperties: Property[] = [
   },
 ];
 
-export const mockEmployees: Employee[] = [
+// Admin Users (10-15 admins with individual credentials)
+export const mockAdmins: Admin[] = [
   {
-    id: 'EMP-001',
-    name: 'Maria Garcia',
+    id: 'ADM-001',
+    name: 'James Rodriguez',
+    email: 'james@laundryops.com',
     phone: '+1 (305) 555-1001',
-    assignedProperties: 8,
-    todaysTasks: 3,
+    role: 'super-admin',
+    assignedCompanies: ['COMP-001', 'COMP-002', 'COMP-003', 'COMP-004', 'COMP-005', 'COMP-006'],
+    lastLogin: '2025-02-06 09:30 AM',
     status: 'active',
   },
   {
-    id: 'EMP-002',
-    name: 'Carlos Rodriguez',
+    id: 'ADM-002',
+    name: 'Maria Garcia',
+    email: 'maria@laundryops.com',
     phone: '+1 (305) 555-1002',
-    assignedProperties: 6,
-    todaysTasks: 2,
+    role: 'admin',
+    assignedCompanies: ['COMP-001', 'COMP-002'],
+    lastLogin: '2025-02-06 08:45 AM',
     status: 'active',
   },
   {
-    id: 'EMP-003',
-    name: 'Ana Martinez',
+    id: 'ADM-003',
+    name: 'Carlos Martinez',
+    email: 'carlos@laundryops.com',
     phone: '+1 (305) 555-1003',
-    assignedProperties: 5,
-    todaysTasks: 4,
+    role: 'admin',
+    assignedCompanies: ['COMP-003', 'COMP-004'],
+    lastLogin: '2025-02-05 04:20 PM',
     status: 'active',
   },
   {
-    id: 'EMP-004',
-    name: 'Jose Hernandez',
+    id: 'ADM-004',
+    name: 'Ana Lopez',
+    email: 'ana@laundryops.com',
     phone: '+1 (305) 555-1004',
-    assignedProperties: 4,
-    todaysTasks: 0,
-    status: 'offline',
+    role: 'admin',
+    assignedCompanies: ['COMP-005', 'COMP-006'],
+    lastLogin: '2025-02-06 10:15 AM',
+    status: 'active',
+  },
+  {
+    id: 'ADM-005',
+    name: 'David Chen',
+    email: 'david@laundryops.com',
+    phone: '+1 (305) 555-1005',
+    role: 'admin',
+    assignedCompanies: ['COMP-001', 'COMP-003'],
+    lastLogin: '2025-02-04 02:30 PM',
+    status: 'active',
+  },
+  {
+    id: 'ADM-006',
+    name: 'Sofia Williams',
+    email: 'sofia@laundryops.com',
+    phone: '+1 (305) 555-1006',
+    role: 'admin',
+    assignedCompanies: ['COMP-002', 'COMP-004'],
+    lastLogin: '2025-02-06 07:00 AM',
+    status: 'active',
+  },
+  {
+    id: 'ADM-007',
+    name: 'Michael Brown',
+    email: 'michael@laundryops.com',
+    phone: '+1 (305) 555-1007',
+    role: 'admin',
+    assignedCompanies: ['COMP-005'],
+    lastLogin: '2025-02-05 11:45 AM',
+    status: 'active',
+  },
+  {
+    id: 'ADM-008',
+    name: 'Emily Davis',
+    email: 'emily@laundryops.com',
+    phone: '+1 (305) 555-1008',
+    role: 'admin',
+    assignedCompanies: ['COMP-006', 'COMP-001'],
+    lastLogin: '2025-02-03 03:00 PM',
+    status: 'inactive',
+  },
+  {
+    id: 'ADM-009',
+    name: 'Robert Wilson',
+    email: 'robert@laundryops.com',
+    phone: '+1 (305) 555-1009',
+    role: 'admin',
+    assignedCompanies: ['COMP-002', 'COMP-003'],
+    lastLogin: '2025-02-06 09:00 AM',
+    status: 'active',
+  },
+  {
+    id: 'ADM-010',
+    name: 'Jessica Taylor',
+    email: 'jessica@laundryops.com',
+    phone: '+1 (305) 555-1010',
+    role: 'admin',
+    assignedCompanies: ['COMP-004', 'COMP-005'],
+    lastLogin: '2025-02-05 05:30 PM',
+    status: 'active',
+  },
+  {
+    id: 'ADM-011',
+    name: 'Daniel Anderson',
+    email: 'daniel@laundryops.com',
+    phone: '+1 (305) 555-1011',
+    role: 'admin',
+    assignedCompanies: ['COMP-001'],
+    lastLogin: '2025-02-04 10:00 AM',
+    status: 'active',
+  },
+  {
+    id: 'ADM-012',
+    name: 'Laura Thompson',
+    email: 'laura@laundryops.com',
+    phone: '+1 (305) 555-1012',
+    role: 'admin',
+    assignedCompanies: ['COMP-003', 'COMP-006'],
+    lastLogin: '2025-02-06 08:30 AM',
+    status: 'active',
   },
 ];
 
@@ -353,7 +444,7 @@ export const mockRequests: Request[] = [
     requestDate: '2025-01-23',
     reason: 'guest-change',
     priority: 'high',
-    assignedEmployee: null,
+    assignedAdmin: null,
     status: 'pending',
   },
   {
@@ -363,7 +454,7 @@ export const mockRequests: Request[] = [
     requestDate: '2025-01-22',
     reason: 'used',
     priority: 'normal',
-    assignedEmployee: 'Maria Garcia',
+    assignedAdmin: 'Maria Garcia',
     status: 'assigned',
   },
   {
@@ -373,7 +464,7 @@ export const mockRequests: Request[] = [
     requestDate: '2025-01-24',
     reason: 'emergency',
     priority: 'urgent',
-    assignedEmployee: null,
+    assignedAdmin: null,
     status: 'pending',
   },
 ];
@@ -385,6 +476,8 @@ export const dashboardStats = {
   pendingCollections: 7,
   overdueCollections: 4,
   todaysPickups: 5,
+  totalAdmins: 12,
+  activeAdmins: 11,
 };
 
 // Helper function to get company by ID
@@ -395,4 +488,20 @@ export const getCompanyById = (companyId: string): Company | undefined => {
 // Helper function to get properties by company ID
 export const getPropertiesByCompanyId = (companyId: string): Property[] => {
   return mockProperties.filter(property => property.companyId === companyId);
+};
+
+// Helper function to get admin by ID
+export const getAdminById = (adminId: string): Admin | undefined => {
+  return mockAdmins.find(admin => admin.id === adminId);
+};
+
+// Helper function to authenticate admin
+export const authenticateAdmin = (email: string, password: string): Admin | null => {
+  // In production, this would validate against a secure backend
+  const admin = mockAdmins.find(a => a.email === email && a.status === 'active');
+  // For demo purposes, password is the admin ID (e.g., ADM-001)
+  if (admin && password === admin.id) {
+    return admin;
+  }
+  return null;
 };

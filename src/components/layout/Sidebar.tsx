@@ -21,7 +21,7 @@ const navItems = [
   { path: '/properties', label: 'Properties', icon: Building2 },
   { path: '/collections', label: 'Collections', icon: Truck },
   { path: '/requests', label: 'Requests', icon: MessageSquare },
-  { path: '/employees', label: 'Employees', icon: Users },
+  { path: '/admin', label: 'Admin', icon: Users },
   { path: '/reports', label: 'Reports', icon: BarChart3 },
   { path: '/settings', label: 'Settings', icon: Settings },
 ];
