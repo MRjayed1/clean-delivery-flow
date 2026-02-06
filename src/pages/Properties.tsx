@@ -18,12 +18,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Plus, Search, Eye, Pencil } from 'lucide-react';
+import { Plus, Search, FileEdit } from 'lucide-react';
 import { mockProperties, Property } from '@/lib/mockData';
+import { PropertyDetailsDialog } from '@/components/properties/PropertyDetailsDialog';
 
 export default function Properties() {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
+  const [dialogOpen, setDialogOpen] = useState(false);
 
   const filteredProperties = mockProperties.filter((property) => {
     const matchesSearch =
@@ -42,6 +45,11 @@ export default function Properties() {
       case 'overdue':
         return <Badge variant="overdue">Overdue</Badge>;
     }
+  };
+
+  const handleOpenDetails = (property: Property) => {
+    setSelectedProperty(property);
+    setDialogOpen(true);
   };
 
   return (
@@ -89,7 +97,6 @@ export default function Properties() {
                 <TableHead>Last Delivery</TableHead>
                 <TableHead>Next Collection</TableHead>
                 <TableHead>Status</TableHead>
-                <TableHead>Assigned To</TableHead>
                 <TableHead className="pr-6 text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
@@ -108,16 +115,15 @@ export default function Properties() {
                   <TableCell>{property.lastDeliveryDate}</TableCell>
                   <TableCell>{property.nextCollectionDate}</TableCell>
                   <TableCell>{getStatusBadge(property.status)}</TableCell>
-                  <TableCell>{property.assignedEmployee}</TableCell>
                   <TableCell className="pr-6 text-right">
-                    <div className="flex items-center justify-end gap-2">
-                      <Button variant="ghost" size="sm">
-                        <Eye className="w-4 h-4" />
-                      </Button>
-                      <Button variant="ghost" size="sm">
-                        <Pencil className="w-4 h-4" />
-                      </Button>
-                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleOpenDetails(property)}
+                    >
+                      <FileEdit className="w-4 h-4 mr-2" />
+                      Add Details
+                    </Button>
                   </TableCell>
                 </TableRow>
               ))}
@@ -131,6 +137,12 @@ export default function Properties() {
           </div>
         )}
       </main>
+
+      <PropertyDetailsDialog
+        open={dialogOpen}
+        onOpenChange={setDialogOpen}
+        property={selectedProperty}
+      />
     </div>
   );
 }
