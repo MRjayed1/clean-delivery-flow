@@ -1,7 +1,7 @@
 import { Header } from '@/components/layout/Header';
 import { StatCard } from '@/components/dashboard/StatCard';
 import { OverdueTable } from '@/components/dashboard/OverdueTable';
-import { Building2, CheckCircle, Clock, AlertTriangle, Calendar } from 'lucide-react';
+import { Building2, CheckCircle, Clock, AlertTriangle, Calendar, Briefcase } from 'lucide-react';
 import { dashboardStats, mockProperties } from '@/lib/mockData';
 
 export default function Dashboard() {
@@ -14,7 +14,12 @@ export default function Dashboard() {
 
       <main className="p-6 space-y-6 animate-fade-in">
         {/* Stats Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4">
+          <StatCard
+            title="Total Companies"
+            value={dashboardStats.totalCompanies}
+            icon={Briefcase}
+          />
           <StatCard
             title="Total Properties"
             value={dashboardStats.totalProperties}
