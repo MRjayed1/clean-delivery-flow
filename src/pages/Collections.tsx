@@ -1,13 +1,14 @@
 import { useState } from 'react';
 import { Header } from '@/components/layout/Header';
-import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { CheckCircle, MapPin, Calendar, Truck, Package, PlayCircle } from 'lucide-react';
-import { mockCollections, Collection } from '@/lib/mockData';
+import { Truck, PlayCircle, Calendar, CheckCircle, Phone } from 'lucide-react';
+import { mockCollections, ExtendedCollection } from '@/lib/mockData';
+import { CollectionCard } from '@/components/collections/CollectionCard';
+import { addDays, format } from 'date-fns';
 
 export default function Collections() {
-  const [collections, setCollections] = useState(mockCollections);
+  const [collections, setCollections] = useState<ExtendedCollection[]>(mockCollections);
 
   const handleMarkCollected = (id: string) => {
     setCollections((prev) =>
@@ -17,11 +18,55 @@ export default function Collections() {
 
   const handleMarkDelivered = (id: string) => {
     setCollections((prev) =>
-      prev.map((c) => (c.id === id ? { ...c, status: 'delivered' as const } : c))
+      prev.map((c) => {
+        if (c.id !== id) return c;
+        
+        const newDeliveryDate = format(new Date(), 'yyyy-MM-dd');
+        
+        // If not in manual override mode, auto-calculate next collection date
+        if (!c.manualOverride) {
+          const nextCollectionDate = format(addDays(new Date(), 14), 'yyyy-MM-dd');
+          return {
+            ...c,
+            status: 'delivered' as const,
+            deliveryDate: newDeliveryDate,
+            deadline: nextCollectionDate,
+          };
+        }
+        
+        return { ...c, status: 'delivered' as const, deliveryDate: newDeliveryDate };
+      })
     );
   };
 
-  const filterCollections = (tab: 'today' | 'upcoming' | 'overdue' | 'running') => {
+  const handleToggleManualOverride = (id: string, enabled: boolean) => {
+    setCollections((prev) =>
+      prev.map((c) => {
+        if (c.id !== id) return c;
+        
+        // If disabling manual override, recalculate collection date from delivery date
+        if (!enabled && c.deliveryDate) {
+          const autoCollectionDate = format(addDays(new Date(c.deliveryDate), 14), 'yyyy-MM-dd');
+          return {
+            ...c,
+            manualOverride: false,
+            deadline: autoCollectionDate,
+            status: c.status === 'waiting-for-call' ? 'pending' : c.status,
+          };
+        }
+        
+        return { ...c, manualOverride: enabled };
+      })
+    );
+  };
+
+  const handleUpdateCollection = (id: string, updates: Partial<ExtendedCollection>) => {
+    setCollections((prev) =>
+      prev.map((c) => (c.id === id ? { ...c, ...updates } : c))
+    );
+  };
+
+  const filterCollections = (tab: 'today' | 'upcoming' | 'overdue' | 'running' | 'waiting') => {
     const today = new Date().toISOString().split('T')[0];
     switch (tab) {
       case 'today':
@@ -34,91 +79,10 @@ export default function Collections() {
         return collections.filter((c) => c.status === 'overdue');
       case 'running':
         return collections.filter((c) => c.status === 'collected');
+      case 'waiting':
+        return collections.filter((c) => c.status === 'waiting-for-call');
     }
   };
-
-  const getStatusBadge = (status: Collection['status']) => {
-    switch (status) {
-      case 'pending':
-        return <Badge variant="pending">Pending</Badge>;
-      case 'collected':
-        return <Badge variant="scheduled">Collected</Badge>;
-      case 'delivered':
-        return <Badge variant="success">Delivered</Badge>;
-      case 'overdue':
-        return <Badge variant="overdue">Overdue</Badge>;
-    }
-  };
-
-  const getPriorityBadge = (priority: Collection['priority']) => {
-    switch (priority) {
-      case 'normal':
-        return <Badge variant="secondary">Normal</Badge>;
-      case 'high':
-        return <Badge variant="warning">High</Badge>;
-      case 'urgent':
-        return <Badge variant="destructive">Urgent</Badge>;
-    }
-  };
-
-  const CollectionCard = ({ collection }: { collection: Collection }) => (
-    <div className="dashboard-card p-5 hover:shadow-md transition-shadow">
-      <div className="flex items-start justify-between mb-4">
-        <div className="flex items-center gap-2">
-          {getStatusBadge(collection.status)}
-          {getPriorityBadge(collection.priority)}
-        </div>
-        <Badge variant={collection.collectionType === 'scheduled' ? 'scheduled' : 'warning'}>
-          {collection.collectionType === 'scheduled' ? 'Scheduled' : 'Early Request'}
-        </Badge>
-      </div>
-
-      <div className="space-y-3">
-        <div className="flex items-start gap-3">
-          <MapPin className="w-4 h-4 text-muted-foreground mt-1" />
-          <p className="text-sm text-foreground">{collection.propertyAddress}</p>
-        </div>
-        <div className="flex items-center gap-3">
-          <Calendar className="w-4 h-4 text-muted-foreground" />
-          <p className="text-sm text-muted-foreground">Deadline: {collection.deadline}</p>
-        </div>
-      </div>
-
-      {/* Action buttons based on status */}
-      <div className="mt-4 space-y-2">
-        {(collection.status === 'pending' || collection.status === 'overdue') && (
-          <div className="grid grid-cols-2 gap-2">
-            <Button
-              variant={collection.status === 'overdue' ? 'destructive' : 'default'}
-              onClick={() => handleMarkCollected(collection.id)}
-              className="w-full"
-            >
-              <CheckCircle className="w-4 h-4 mr-2" />
-              Collected
-            </Button>
-            <Button
-              variant="outline"
-              onClick={() => handleMarkDelivered(collection.id)}
-              className="w-full"
-            >
-              <Package className="w-4 h-4 mr-2" />
-              Delivered
-            </Button>
-          </div>
-        )}
-        {collection.status === 'collected' && (
-          <Button
-            variant="default"
-            onClick={() => handleMarkDelivered(collection.id)}
-            className="w-full"
-          >
-            <Package className="w-4 h-4 mr-2" />
-            Mark as Delivered
-          </Button>
-        )}
-      </div>
-    </div>
-  );
 
   return (
     <div className="min-h-screen">
@@ -143,6 +107,15 @@ export default function Collections() {
                 </Badge>
               )}
             </TabsTrigger>
+            <TabsTrigger value="waiting" className="data-[state=active]:bg-card">
+              <Phone className="w-4 h-4 mr-2" />
+              Waiting
+              {filterCollections('waiting').length > 0 && (
+                <Badge variant="warning" className="ml-2 h-5 min-w-5 px-1.5">
+                  {filterCollections('waiting').length}
+                </Badge>
+              )}
+            </TabsTrigger>
             <TabsTrigger value="upcoming" className="data-[state=active]:bg-card">
               Upcoming
             </TabsTrigger>
@@ -159,7 +132,14 @@ export default function Collections() {
           <TabsContent value="today" className="mt-0">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {filterCollections('today').map((collection) => (
-                <CollectionCard key={collection.id} collection={collection} />
+                <CollectionCard
+                  key={collection.id}
+                  collection={collection}
+                  onMarkCollected={handleMarkCollected}
+                  onMarkDelivered={handleMarkDelivered}
+                  onToggleManualOverride={handleToggleManualOverride}
+                  onUpdateCollection={handleUpdateCollection}
+                />
               ))}
             </div>
             {filterCollections('today').length === 0 && (
@@ -173,7 +153,14 @@ export default function Collections() {
           <TabsContent value="running" className="mt-0">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {filterCollections('running').map((collection) => (
-                <CollectionCard key={collection.id} collection={collection} />
+                <CollectionCard
+                  key={collection.id}
+                  collection={collection}
+                  onMarkCollected={handleMarkCollected}
+                  onMarkDelivered={handleMarkDelivered}
+                  onToggleManualOverride={handleToggleManualOverride}
+                  onUpdateCollection={handleUpdateCollection}
+                />
               ))}
             </div>
             {filterCollections('running').length === 0 && (
@@ -184,10 +171,38 @@ export default function Collections() {
             )}
           </TabsContent>
 
+          <TabsContent value="waiting" className="mt-0">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {filterCollections('waiting').map((collection) => (
+                <CollectionCard
+                  key={collection.id}
+                  collection={collection}
+                  onMarkCollected={handleMarkCollected}
+                  onMarkDelivered={handleMarkDelivered}
+                  onToggleManualOverride={handleToggleManualOverride}
+                  onUpdateCollection={handleUpdateCollection}
+                />
+              ))}
+            </div>
+            {filterCollections('waiting').length === 0 && (
+              <div className="text-center py-12 dashboard-card">
+                <Phone className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
+                <p className="text-muted-foreground">No collections waiting for property call.</p>
+              </div>
+            )}
+          </TabsContent>
+
           <TabsContent value="upcoming" className="mt-0">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {filterCollections('upcoming').map((collection) => (
-                <CollectionCard key={collection.id} collection={collection} />
+                <CollectionCard
+                  key={collection.id}
+                  collection={collection}
+                  onMarkCollected={handleMarkCollected}
+                  onMarkDelivered={handleMarkDelivered}
+                  onToggleManualOverride={handleToggleManualOverride}
+                  onUpdateCollection={handleUpdateCollection}
+                />
               ))}
             </div>
             {filterCollections('upcoming').length === 0 && (
@@ -201,7 +216,14 @@ export default function Collections() {
           <TabsContent value="overdue" className="mt-0">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {filterCollections('overdue').map((collection) => (
-                <CollectionCard key={collection.id} collection={collection} />
+                <CollectionCard
+                  key={collection.id}
+                  collection={collection}
+                  onMarkCollected={handleMarkCollected}
+                  onMarkDelivered={handleMarkDelivered}
+                  onToggleManualOverride={handleToggleManualOverride}
+                  onUpdateCollection={handleUpdateCollection}
+                />
               ))}
             </div>
             {filterCollections('overdue').length === 0 && (
