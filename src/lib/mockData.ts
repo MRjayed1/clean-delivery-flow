@@ -45,9 +45,10 @@ export interface Collection {
 }
 
 export interface ExtendedCollection extends Omit<Collection, 'status'> {
-  status: 'pending' | 'collected' | 'delivered' | 'overdue' | 'waiting-for-call';
+  status: 'running' | 'upcoming' | 'overdue';
+  propertyName: string;
   manualOverride: boolean;
-  deliveryDate?: string;
+  deliveryDate: string;
 }
 
 export interface Request {
@@ -416,17 +417,19 @@ export const mockCollections: ExtendedCollection[] = [
   {
     id: 'COL-001',
     propertyId: 'PROP-001',
+    propertyName: 'Beachfront Villa',
     propertyAddress: '123 Ocean Drive, Miami, FL 33139',
     collectionType: 'scheduled',
-    deadline: '2025-01-25',
-    status: 'pending',
+    deadline: '2025-02-20',
+    status: 'running',
     priority: 'normal',
     manualOverride: false,
-    deliveryDate: '2025-01-11',
+    deliveryDate: '2025-02-06',
   },
   {
     id: 'COL-002',
     propertyId: 'PROP-004',
+    propertyName: 'Downtown Loft',
     propertyAddress: '456 Main Street, Miami, FL 33130',
     collectionType: 'scheduled',
     deadline: '2025-01-19',
@@ -438,46 +441,50 @@ export const mockCollections: ExtendedCollection[] = [
   {
     id: 'COL-003',
     propertyId: 'PROP-006',
+    propertyName: 'Sunset Apartment',
     propertyAddress: '789 Bay Road, Miami Beach, FL 33140',
-    collectionType: 'early-request',
-    deadline: '2025-01-25',
-    status: 'pending',
-    priority: 'high',
+    collectionType: 'scheduled',
+    deadline: '2025-02-25',
+    status: 'upcoming',
+    priority: 'normal',
     manualOverride: true,
-    deliveryDate: '2025-01-12',
+    deliveryDate: '2025-02-05',
   },
   {
     id: 'COL-004',
     propertyId: 'PROP-007',
+    propertyName: 'Luxury Penthouse',
     propertyAddress: '800 Bay Road, Miami Beach, FL 33140',
     collectionType: 'scheduled',
-    deadline: '2025-01-24',
-    status: 'collected',
+    deadline: '2025-02-18',
+    status: 'running',
     priority: 'high',
     manualOverride: false,
-    deliveryDate: '2025-01-10',
+    deliveryDate: '2025-02-04',
   },
   {
     id: 'COL-005',
     propertyId: 'PROP-009',
+    propertyName: 'Harbor View Suite',
     propertyAddress: '321 Marina Way, Key Biscayne, FL 33149',
-    collectionType: 'early-request',
-    deadline: '2025-01-23',
-    status: 'collected',
-    priority: 'urgent',
-    manualOverride: false,
-    deliveryDate: '2025-01-09',
+    collectionType: 'scheduled',
+    deadline: '2025-03-01',
+    status: 'upcoming',
+    priority: 'normal',
+    manualOverride: true,
+    deliveryDate: '2025-02-03',
   },
   {
     id: 'COL-006',
     propertyId: 'PROP-010',
+    propertyName: 'Marina Apartment',
     propertyAddress: '325 Marina Way, Key Biscayne, FL 33149',
     collectionType: 'scheduled',
-    deadline: '',
-    status: 'waiting-for-call',
+    deadline: '2025-02-22',
+    status: 'running',
     priority: 'normal',
-    manualOverride: true,
-    deliveryDate: '2025-01-20',
+    manualOverride: false,
+    deliveryDate: '2025-02-08',
   },
 ];
 
