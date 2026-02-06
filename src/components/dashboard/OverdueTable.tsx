@@ -1,4 +1,4 @@
-import { Property } from '@/lib/mockData';
+import { Property, getCompanyById } from '@/lib/mockData';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Eye, UserPlus } from 'lucide-react';
@@ -35,45 +35,40 @@ export function OverdueTable({ properties }: OverdueTableProps) {
           <TableHeader>
             <TableRow className="table-header">
               <TableHead className="pl-6">Property ID</TableHead>
+              <TableHead>Company</TableHead>
               <TableHead>Address</TableHead>
               <TableHead>Days Overdue</TableHead>
-              <TableHead>Assigned Employee</TableHead>
               <TableHead className="pr-6 text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {overdueProperties.map((property) => (
-              <TableRow key={property.id} className="table-row">
-                <TableCell className="pl-6 font-medium">{property.id}</TableCell>
-                <TableCell className="max-w-[200px] truncate">{property.address}</TableCell>
-                <TableCell>
-                  <Badge variant="overdue">{property.daysOverdue} days</Badge>
-                </TableCell>
-                <TableCell>
-                  <span
-                    className={
-                      property.assignedEmployee === 'Unassigned'
-                        ? 'text-muted-foreground italic'
-                        : ''
-                    }
-                  >
-                    {property.assignedEmployee}
-                  </span>
-                </TableCell>
-                <TableCell className="pr-6 text-right">
-                  <div className="flex items-center justify-end gap-2">
-                    <Button variant="ghost" size="sm">
-                      <Eye className="w-4 h-4 mr-1" />
-                      View
-                    </Button>
-                    <Button variant="outline" size="sm">
-                      <UserPlus className="w-4 h-4 mr-1" />
-                      Assign
-                    </Button>
-                  </div>
-                </TableCell>
-              </TableRow>
-            ))}
+            {overdueProperties.map((property) => {
+              const company = getCompanyById(property.companyId);
+              return (
+                <TableRow key={property.id} className="table-row">
+                  <TableCell className="pl-6 font-medium">{property.id}</TableCell>
+                  <TableCell>
+                    <span className="text-sm font-medium">{company?.name || 'Unknown'}</span>
+                  </TableCell>
+                  <TableCell className="max-w-[200px] truncate">{property.address}</TableCell>
+                  <TableCell>
+                    <Badge variant="overdue">{property.daysOverdue} days</Badge>
+                  </TableCell>
+                  <TableCell className="pr-6 text-right">
+                    <div className="flex items-center justify-end gap-2">
+                      <Button variant="ghost" size="sm">
+                        <Eye className="w-4 h-4 mr-1" />
+                        View
+                      </Button>
+                      <Button variant="outline" size="sm">
+                        <UserPlus className="w-4 h-4 mr-1" />
+                        Assign
+                      </Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              );
+            })}
           </TableBody>
         </Table>
       </div>
