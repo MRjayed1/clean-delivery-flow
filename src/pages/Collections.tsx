@@ -3,7 +3,7 @@ import { Header } from '@/components/layout/Header';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { CheckCircle, MapPin, Calendar, Truck } from 'lucide-react';
+import { CheckCircle, MapPin, Calendar, Truck, Package, PlayCircle } from 'lucide-react';
 import { mockCollections, Collection } from '@/lib/mockData';
 
 export default function Collections() {
@@ -11,21 +11,29 @@ export default function Collections() {
 
   const handleMarkCollected = (id: string) => {
     setCollections((prev) =>
-      prev.map((c) => (c.id === id ? { ...c, status: 'completed' as const } : c))
+      prev.map((c) => (c.id === id ? { ...c, status: 'collected' as const } : c))
     );
   };
 
-  const filterCollections = (status: 'today' | 'upcoming' | 'overdue') => {
+  const handleMarkDelivered = (id: string) => {
+    setCollections((prev) =>
+      prev.map((c) => (c.id === id ? { ...c, status: 'delivered' as const } : c))
+    );
+  };
+
+  const filterCollections = (tab: 'today' | 'upcoming' | 'overdue' | 'running') => {
     const today = new Date().toISOString().split('T')[0];
-    switch (status) {
+    switch (tab) {
       case 'today':
         return collections.filter(
-          (c) => c.deadline === today || c.deadline === '2025-01-25'
+          (c) => (c.deadline === today || c.deadline === '2025-01-25') && c.status === 'pending'
         );
       case 'upcoming':
         return collections.filter((c) => c.deadline > today && c.status === 'pending');
       case 'overdue':
         return collections.filter((c) => c.status === 'overdue');
+      case 'running':
+        return collections.filter((c) => c.status === 'collected');
     }
   };
 
@@ -33,8 +41,10 @@ export default function Collections() {
     switch (status) {
       case 'pending':
         return <Badge variant="pending">Pending</Badge>;
-      case 'completed':
-        return <Badge variant="success">Completed</Badge>;
+      case 'collected':
+        return <Badge variant="scheduled">Collected</Badge>;
+      case 'delivered':
+        return <Badge variant="success">Delivered</Badge>;
       case 'overdue':
         return <Badge variant="overdue">Overdue</Badge>;
     }
@@ -74,16 +84,39 @@ export default function Collections() {
         </div>
       </div>
 
-      {collection.status !== 'completed' && (
-        <Button
-          className="w-full mt-4"
-          variant={collection.status === 'overdue' ? 'destructive' : 'default'}
-          onClick={() => handleMarkCollected(collection.id)}
-        >
-          <CheckCircle className="w-4 h-4 mr-2" />
-          Mark as Collected
-        </Button>
-      )}
+      {/* Action buttons based on status */}
+      <div className="mt-4 space-y-2">
+        {(collection.status === 'pending' || collection.status === 'overdue') && (
+          <div className="grid grid-cols-2 gap-2">
+            <Button
+              variant={collection.status === 'overdue' ? 'destructive' : 'default'}
+              onClick={() => handleMarkCollected(collection.id)}
+              className="w-full"
+            >
+              <CheckCircle className="w-4 h-4 mr-2" />
+              Collected
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => handleMarkDelivered(collection.id)}
+              className="w-full"
+            >
+              <Package className="w-4 h-4 mr-2" />
+              Delivered
+            </Button>
+          </div>
+        )}
+        {collection.status === 'collected' && (
+          <Button
+            variant="default"
+            onClick={() => handleMarkDelivered(collection.id)}
+            className="w-full"
+          >
+            <Package className="w-4 h-4 mr-2" />
+            Mark as Delivered
+          </Button>
+        )}
+      </div>
     </div>
   );
 
@@ -91,15 +124,24 @@ export default function Collections() {
     <div className="min-h-screen">
       <Header
         title="Collections"
-        description="Manage your laundry collection schedule"
+        description="Manage your laundry collection and delivery schedule"
       />
 
       <main className="p-6 animate-fade-in">
         <Tabs defaultValue="today" className="w-full">
-          <TabsList className="mb-6 bg-muted/50">
+          <TabsList className="mb-6 bg-muted/50 flex-wrap h-auto gap-1 p-1">
             <TabsTrigger value="today" className="data-[state=active]:bg-card">
               <Truck className="w-4 h-4 mr-2" />
               Today
+            </TabsTrigger>
+            <TabsTrigger value="running" className="data-[state=active]:bg-card">
+              <PlayCircle className="w-4 h-4 mr-2" />
+              Running
+              {filterCollections('running').length > 0 && (
+                <Badge variant="scheduled" className="ml-2 h-5 min-w-5 px-1.5">
+                  {filterCollections('running').length}
+                </Badge>
+              )}
             </TabsTrigger>
             <TabsTrigger value="upcoming" className="data-[state=active]:bg-card">
               Upcoming
@@ -124,6 +166,20 @@ export default function Collections() {
               <div className="text-center py-12 dashboard-card">
                 <Truck className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
                 <p className="text-muted-foreground">No collections scheduled for today.</p>
+              </div>
+            )}
+          </TabsContent>
+
+          <TabsContent value="running" className="mt-0">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {filterCollections('running').map((collection) => (
+                <CollectionCard key={collection.id} collection={collection} />
+              ))}
+            </div>
+            {filterCollections('running').length === 0 && (
+              <div className="text-center py-12 dashboard-card">
+                <PlayCircle className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
+                <p className="text-muted-foreground">No collections in progress.</p>
               </div>
             )}
           </TabsContent>

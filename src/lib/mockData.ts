@@ -40,7 +40,7 @@ export interface Collection {
   propertyAddress: string;
   collectionType: 'scheduled' | 'early-request';
   deadline: string;
-  status: 'pending' | 'completed' | 'overdue';
+  status: 'pending' | 'collected' | 'delivered' | 'overdue';
   priority: 'normal' | 'high' | 'urgent';
 }
 
@@ -433,6 +433,24 @@ export const mockCollections: Collection[] = [
     deadline: '2025-01-25',
     status: 'pending',
     priority: 'high',
+  },
+  {
+    id: 'COL-004',
+    propertyId: 'PROP-007',
+    propertyAddress: '800 Bay Road, Miami Beach, FL 33140',
+    collectionType: 'scheduled',
+    deadline: '2025-01-24',
+    status: 'collected',
+    priority: 'high',
+  },
+  {
+    id: 'COL-005',
+    propertyId: 'PROP-009',
+    propertyAddress: '321 Marina Way, Key Biscayne, FL 33149',
+    collectionType: 'early-request',
+    deadline: '2025-01-23',
+    status: 'collected',
+    priority: 'urgent',
   },
 ];
 
