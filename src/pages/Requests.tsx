@@ -17,7 +17,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { CheckCircle, UserPlus } from 'lucide-react';
-import { mockRequests, mockEmployees, Request } from '@/lib/mockData';
+import { mockRequests, mockAdmins, Request } from '@/lib/mockData';
 
 export default function Requests() {
   const getReasonLabel = (reason: Request['reason']) => {
@@ -67,7 +67,7 @@ export default function Requests() {
         <div className="dashboard-card bg-primary/5 border-primary/20">
           <p className="text-sm text-foreground">
             <strong>No more phone calls!</strong> All early collection requests are managed here.
-            Approve and assign employees directly from this dashboard.
+            Approve and assign admins directly from this dashboard.
           </p>
         </div>
 
@@ -112,19 +112,19 @@ export default function Requests() {
                   </TableCell>
                   <TableCell>{getPriorityBadge(request.priority)}</TableCell>
                   <TableCell>
-                    {request.assignedEmployee ? (
-                      <span>{request.assignedEmployee}</span>
+                    {request.assignedAdmin ? (
+                      <span>{request.assignedAdmin}</span>
                     ) : (
                       <Select>
                         <SelectTrigger className="w-[160px] h-8 bg-card">
-                          <SelectValue placeholder="Select employee" />
+                          <SelectValue placeholder="Select admin" />
                         </SelectTrigger>
                         <SelectContent className="bg-popover z-50">
-                          {mockEmployees
-                            .filter((e) => e.status === 'active')
-                            .map((employee) => (
-                              <SelectItem key={employee.id} value={employee.id}>
-                                {employee.name}
+                          {mockAdmins
+                            .filter((a) => a.status === 'active')
+                            .map((admin) => (
+                              <SelectItem key={admin.id} value={admin.id}>
+                                {admin.name}
                               </SelectItem>
                             ))}
                         </SelectContent>

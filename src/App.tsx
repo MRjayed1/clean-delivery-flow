@@ -9,7 +9,7 @@ import Companies from "./pages/Companies";
 import Properties from "./pages/Properties";
 import Collections from "./pages/Collections";
 import Requests from "./pages/Requests";
-import Employees from "./pages/Employees";
+import Admin from "./pages/Admin";
 import Reports from "./pages/Reports";
 import Settings from "./pages/Settings";
 import Login from "./pages/Login";
@@ -31,7 +31,7 @@ const App = () => (
             <Route path="/properties" element={<Properties />} />
             <Route path="/collections" element={<Collections />} />
             <Route path="/requests" element={<Requests />} />
-            <Route path="/employees" element={<Employees />} />
+            <Route path="/admin" element={<Admin />} />
             <Route path="/reports" element={<Reports />} />
             <Route path="/settings" element={<Settings />} />
           </Route>

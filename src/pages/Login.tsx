@@ -3,25 +3,34 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { Shirt } from 'lucide-react';
+import { Shirt, AlertCircle } from 'lucide-react';
+import { authenticateAdmin } from '@/lib/mockData';
 
 export default function Login() {
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [role, setRole] = useState<string>('admin');
+  const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
-    // Mock login - would connect to auth in production
-    navigate('/');
+    setError('');
+    setIsLoading(true);
+
+    // Simulate network delay
+    setTimeout(() => {
+      const admin = authenticateAdmin(email, password);
+      
+      if (admin) {
+        // Store admin info in localStorage (for demo purposes)
+        localStorage.setItem('currentAdmin', JSON.stringify(admin));
+        navigate('/');
+      } else {
+        setError('Invalid email or password. Please try again.');
+      }
+      setIsLoading(false);
+    }, 500);
   };
 
   return (
@@ -34,52 +43,65 @@ export default function Login() {
               <Shirt className="w-7 h-7 text-primary-foreground" />
             </div>
             <h1 className="text-2xl font-semibold text-foreground">LaundryOps</h1>
-            <p className="text-muted-foreground mt-1">Operations Dashboard</p>
+            <p className="text-muted-foreground mt-1">Admin Portal</p>
           </div>
+
+          {/* Error Message */}
+          {error && (
+            <div className="flex items-center gap-2 p-3 mb-5 rounded-lg bg-destructive/10 text-destructive text-sm">
+              <AlertCircle className="w-4 h-4 flex-shrink-0" />
+              <span>{error}</span>
+            </div>
+          )}
 
           {/* Login Form */}
           <form onSubmit={handleLogin} className="space-y-5">
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email">Admin Email</Label>
               <Input
                 id="email"
                 type="email"
-                placeholder="you@company.com"
+                placeholder="admin@laundryops.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="h-11"
+                required
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
+              <Label htmlFor="password">Admin ID (Password)</Label>
               <Input
                 id="password"
                 type="password"
-                placeholder="••••••••"
+                placeholder="ADM-XXX"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 className="h-11"
+                required
               />
+              <p className="text-xs text-muted-foreground">
+                Use your unique Admin ID as password
+              </p>
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="role">Role</Label>
-              <Select value={role} onValueChange={setRole}>
-                <SelectTrigger id="role" className="h-11 bg-card">
-                  <SelectValue placeholder="Select your role" />
-                </SelectTrigger>
-                <SelectContent className="bg-popover z-50">
-                  <SelectItem value="admin">Administrator</SelectItem>
-                  <SelectItem value="employee">Employee</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <Button type="submit" className="w-full h-11">
-              Sign In
+            <Button type="submit" className="w-full h-11" disabled={isLoading}>
+              {isLoading ? 'Signing in...' : 'Sign In'}
             </Button>
           </form>
+
+          {/* Demo Credentials */}
+          <div className="mt-6 p-4 rounded-lg bg-muted/50 border border-border">
+            <p className="text-sm font-medium text-foreground mb-2">Demo Credentials:</p>
+            <div className="space-y-1 text-sm text-muted-foreground">
+              <p>
+                <span className="font-medium">Super Admin:</span> james@laundryops.com / ADM-001
+              </p>
+              <p>
+                <span className="font-medium">Admin:</span> maria@laundryops.com / ADM-002
+              </p>
+            </div>
+          </div>
 
           {/* Forgot Password */}
           <div className="mt-6 text-center">
