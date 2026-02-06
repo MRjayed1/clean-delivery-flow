@@ -44,6 +44,12 @@ export interface Collection {
   priority: 'normal' | 'high' | 'urgent';
 }
 
+export interface ExtendedCollection extends Omit<Collection, 'status'> {
+  status: 'pending' | 'collected' | 'delivered' | 'overdue' | 'waiting-for-call';
+  manualOverride: boolean;
+  deliveryDate?: string;
+}
+
 export interface Request {
   id: string;
   propertyId: string;
@@ -406,7 +412,7 @@ export const mockAdmins: Admin[] = [
   },
 ];
 
-export const mockCollections: Collection[] = [
+export const mockCollections: ExtendedCollection[] = [
   {
     id: 'COL-001',
     propertyId: 'PROP-001',
@@ -415,6 +421,8 @@ export const mockCollections: Collection[] = [
     deadline: '2025-01-25',
     status: 'pending',
     priority: 'normal',
+    manualOverride: false,
+    deliveryDate: '2025-01-11',
   },
   {
     id: 'COL-002',
@@ -424,6 +432,8 @@ export const mockCollections: Collection[] = [
     deadline: '2025-01-19',
     status: 'overdue',
     priority: 'urgent',
+    manualOverride: false,
+    deliveryDate: '2025-01-05',
   },
   {
     id: 'COL-003',
@@ -433,6 +443,8 @@ export const mockCollections: Collection[] = [
     deadline: '2025-01-25',
     status: 'pending',
     priority: 'high',
+    manualOverride: true,
+    deliveryDate: '2025-01-12',
   },
   {
     id: 'COL-004',
@@ -442,6 +454,8 @@ export const mockCollections: Collection[] = [
     deadline: '2025-01-24',
     status: 'collected',
     priority: 'high',
+    manualOverride: false,
+    deliveryDate: '2025-01-10',
   },
   {
     id: 'COL-005',
@@ -451,6 +465,19 @@ export const mockCollections: Collection[] = [
     deadline: '2025-01-23',
     status: 'collected',
     priority: 'urgent',
+    manualOverride: false,
+    deliveryDate: '2025-01-09',
+  },
+  {
+    id: 'COL-006',
+    propertyId: 'PROP-010',
+    propertyAddress: '325 Marina Way, Key Biscayne, FL 33149',
+    collectionType: 'scheduled',
+    deadline: '',
+    status: 'waiting-for-call',
+    priority: 'normal',
+    manualOverride: true,
+    deliveryDate: '2025-01-20',
   },
 ];
 
