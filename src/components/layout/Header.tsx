@@ -10,6 +10,8 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Badge } from '@/components/ui/badge';
+import { CollectionCalendar } from '@/components/collections/CollectionCalendar';
+import { useLocation } from 'react-router-dom';
 
 interface HeaderProps {
   title: string;
@@ -24,6 +26,8 @@ const notifications = [
 
 export function Header({ title, description }: HeaderProps) {
   const unreadCount = notifications.filter((n) => n.unread).length;
+  const location = useLocation();
+  const isCollectionsPage = location.pathname === '/collections';
 
   return (
     <header className="sticky top-0 z-30 flex items-center justify-between h-16 px-6 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b border-border">
@@ -45,6 +49,9 @@ export function Header({ title, description }: HeaderProps) {
             className="w-64 pl-9 bg-muted/50 border-0 focus-visible:bg-background focus-visible:ring-1"
           />
         </div>
+
+        {/* Collections Calendar Dropdown (Only on Collections page) */}
+        {isCollectionsPage && <CollectionCalendar />}
 
         {/* Notifications */}
         <DropdownMenu>

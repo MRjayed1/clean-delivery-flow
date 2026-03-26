@@ -1,3 +1,10 @@
+export interface CategoryQuantity {
+  single: number;
+  double: number;
+  king: number;
+  superking: number;
+}
+
 export interface Company {
   id: string;
   name: string;
@@ -44,11 +51,20 @@ export interface Collection {
   priority: 'normal' | 'high' | 'urgent';
 }
 
+export interface CollectionItem {
+  id: string;
+  description: string;
+  quantities: CategoryQuantity;
+  imagePreviews: string[];
+  addedAt: string;
+}
+
 export interface ExtendedCollection extends Omit<Collection, 'status'> {
   status: 'running' | 'upcoming' | 'overdue';
   propertyName: string;
   manualOverride: boolean;
   deliveryDate: string;
+  items: CollectionItem[];
 }
 
 export interface Request {
@@ -142,8 +158,8 @@ export const mockProperties: Property[] = [
     address: '123 Ocean Drive, Miami, FL 33139',
     contactPerson: 'John Smith',
     contactPhone: '+1 (305) 555-0123',
-    lastDeliveryDate: '2025-01-10',
-    nextCollectionDate: '2025-01-24',
+    lastDeliveryDate: '2026-03-10',
+    nextCollectionDate: '2026-03-24',
     status: 'active',
   },
   {
@@ -153,8 +169,8 @@ export const mockProperties: Property[] = [
     address: '125 Ocean Drive, Miami, FL 33139',
     contactPerson: 'John Smith',
     contactPhone: '+1 (305) 555-0124',
-    lastDeliveryDate: '2025-01-12',
-    nextCollectionDate: '2025-01-26',
+    lastDeliveryDate: '2026-03-12',
+    nextCollectionDate: '2026-03-26',
     status: 'active',
   },
   {
@@ -164,8 +180,8 @@ export const mockProperties: Property[] = [
     address: '130 Ocean Drive, Miami, FL 33139',
     contactPerson: 'Anna Lopez',
     contactPhone: '+1 (305) 555-0125',
-    lastDeliveryDate: '2025-01-05',
-    nextCollectionDate: '2025-01-19',
+    lastDeliveryDate: '2026-03-05',
+    nextCollectionDate: '2026-03-19',
     status: 'overdue',
     daysOverdue: 6,
   },
@@ -177,8 +193,8 @@ export const mockProperties: Property[] = [
     address: '456 Main Street, Miami, FL 33130',
     contactPerson: 'Sarah Johnson',
     contactPhone: '+1 (305) 555-0456',
-    lastDeliveryDate: '2025-01-05',
-    nextCollectionDate: '2025-01-19',
+    lastDeliveryDate: '2026-03-05',
+    nextCollectionDate: '2026-03-19',
     status: 'overdue',
     daysOverdue: 6,
   },
@@ -189,8 +205,8 @@ export const mockProperties: Property[] = [
     address: '460 Main Street, Miami, FL 33130',
     contactPerson: 'Sarah Johnson',
     contactPhone: '+1 (305) 555-0457',
-    lastDeliveryDate: '2025-01-14',
-    nextCollectionDate: '2025-01-28',
+    lastDeliveryDate: '2026-03-14',
+    nextCollectionDate: '2026-03-28',
     status: 'active',
   },
   // Miami Luxury Stays (COMP-003)
@@ -201,8 +217,8 @@ export const mockProperties: Property[] = [
     address: '789 Bay Road, Miami Beach, FL 33140',
     contactPerson: 'Mike Wilson',
     contactPhone: '+1 (305) 555-0789',
-    lastDeliveryDate: '2025-01-12',
-    nextCollectionDate: '2025-01-26',
+    lastDeliveryDate: '2026-03-12',
+    nextCollectionDate: '2026-03-26',
     status: 'active',
   },
   {
@@ -212,8 +228,8 @@ export const mockProperties: Property[] = [
     address: '800 Bay Road, Miami Beach, FL 33140',
     contactPerson: 'Mike Wilson',
     contactPhone: '+1 (305) 555-0790',
-    lastDeliveryDate: '2025-01-08',
-    nextCollectionDate: '2025-01-22',
+    lastDeliveryDate: '2026-03-08',
+    nextCollectionDate: '2026-03-22',
     status: 'overdue',
     daysOverdue: 3,
   },
@@ -224,8 +240,8 @@ export const mockProperties: Property[] = [
     address: '810 Bay Road, Miami Beach, FL 33140',
     contactPerson: 'Emma Davis',
     contactPhone: '+1 (305) 555-0791',
-    lastDeliveryDate: '2025-01-15',
-    nextCollectionDate: '2025-01-29',
+    lastDeliveryDate: '2026-03-15',
+    nextCollectionDate: '2026-03-29',
     status: 'pending',
   },
   // Beach House Management (COMP-004)
@@ -236,8 +252,8 @@ export const mockProperties: Property[] = [
     address: '321 Marina Way, Key Biscayne, FL 33149',
     contactPerson: 'Emily Brown',
     contactPhone: '+1 (305) 555-0321',
-    lastDeliveryDate: '2025-01-08',
-    nextCollectionDate: '2025-01-22',
+    lastDeliveryDate: '2026-03-08',
+    nextCollectionDate: '2026-03-22',
     status: 'overdue',
     daysOverdue: 3,
   },
@@ -248,8 +264,8 @@ export const mockProperties: Property[] = [
     address: '325 Marina Way, Key Biscayne, FL 33149',
     contactPerson: 'Emily Brown',
     contactPhone: '+1 (305) 555-0322',
-    lastDeliveryDate: '2025-01-16',
-    nextCollectionDate: '2025-01-30',
+    lastDeliveryDate: '2026-03-16',
+    nextCollectionDate: '2026-03-30',
     status: 'active',
   },
   // Florida Keys Rentals (COMP-005)
@@ -260,8 +276,8 @@ export const mockProperties: Property[] = [
     address: '555 Palm Avenue, Coral Gables, FL 33134',
     contactPerson: 'David Lee',
     contactPhone: '+1 (305) 555-0555',
-    lastDeliveryDate: '2025-01-15',
-    nextCollectionDate: '2025-01-29',
+    lastDeliveryDate: '2026-03-15',
+    nextCollectionDate: '2026-03-29',
     status: 'pending',
   },
   {
@@ -271,8 +287,8 @@ export const mockProperties: Property[] = [
     address: '560 Palm Avenue, Coral Gables, FL 33134',
     contactPerson: 'David Lee',
     contactPhone: '+1 (305) 555-0556',
-    lastDeliveryDate: '2025-01-11',
-    nextCollectionDate: '2025-01-25',
+    lastDeliveryDate: '2026-03-11',
+    nextCollectionDate: '2026-03-25',
     status: 'active',
   },
   // Urban Oasis Properties (COMP-006)
@@ -283,8 +299,8 @@ export const mockProperties: Property[] = [
     address: '1205 Brickell Bay Dr, Miami, FL 33131',
     contactPerson: 'Chris Anderson',
     contactPhone: '+1 (305) 555-0660',
-    lastDeliveryDate: '2025-01-09',
-    nextCollectionDate: '2025-01-23',
+    lastDeliveryDate: '2026-03-09',
+    nextCollectionDate: '2026-03-23',
     status: 'active',
   },
 ];
@@ -298,7 +314,7 @@ export const mockAdmins: Admin[] = [
     phone: '+1 (305) 555-1001',
     role: 'super-admin',
     assignedCompanies: ['COMP-001', 'COMP-002', 'COMP-003', 'COMP-004', 'COMP-005', 'COMP-006'],
-    lastLogin: '2025-02-06 09:30 AM',
+    lastLogin: '2026-03-16 09:30 AM',
     status: 'active',
   },
   {
@@ -308,7 +324,7 @@ export const mockAdmins: Admin[] = [
     phone: '+1 (305) 555-1002',
     role: 'admin',
     assignedCompanies: ['COMP-001', 'COMP-002'],
-    lastLogin: '2025-02-06 08:45 AM',
+    lastLogin: '2026-03-16 08:45 AM',
     status: 'active',
   },
   {
@@ -318,7 +334,7 @@ export const mockAdmins: Admin[] = [
     phone: '+1 (305) 555-1003',
     role: 'admin',
     assignedCompanies: ['COMP-003', 'COMP-004'],
-    lastLogin: '2025-02-05 04:20 PM',
+    lastLogin: '2026-03-15 04:20 PM',
     status: 'active',
   },
   {
@@ -328,7 +344,7 @@ export const mockAdmins: Admin[] = [
     phone: '+1 (305) 555-1004',
     role: 'admin',
     assignedCompanies: ['COMP-005', 'COMP-006'],
-    lastLogin: '2025-02-06 10:15 AM',
+    lastLogin: '2026-03-16 10:15 AM',
     status: 'active',
   },
   {
@@ -338,7 +354,7 @@ export const mockAdmins: Admin[] = [
     phone: '+1 (305) 555-1005',
     role: 'admin',
     assignedCompanies: ['COMP-001', 'COMP-003'],
-    lastLogin: '2025-02-04 02:30 PM',
+    lastLogin: '2026-03-14 02:30 PM',
     status: 'active',
   },
   {
@@ -348,7 +364,7 @@ export const mockAdmins: Admin[] = [
     phone: '+1 (305) 555-1006',
     role: 'admin',
     assignedCompanies: ['COMP-002', 'COMP-004'],
-    lastLogin: '2025-02-06 07:00 AM',
+    lastLogin: '2026-03-16 07:00 AM',
     status: 'active',
   },
   {
@@ -358,7 +374,7 @@ export const mockAdmins: Admin[] = [
     phone: '+1 (305) 555-1007',
     role: 'admin',
     assignedCompanies: ['COMP-005'],
-    lastLogin: '2025-02-05 11:45 AM',
+    lastLogin: '2026-03-15 11:45 AM',
     status: 'active',
   },
   {
@@ -368,7 +384,7 @@ export const mockAdmins: Admin[] = [
     phone: '+1 (305) 555-1008',
     role: 'admin',
     assignedCompanies: ['COMP-006', 'COMP-001'],
-    lastLogin: '2025-02-03 03:00 PM',
+    lastLogin: '2026-03-13 03:00 PM',
     status: 'inactive',
   },
   {
@@ -378,7 +394,7 @@ export const mockAdmins: Admin[] = [
     phone: '+1 (305) 555-1009',
     role: 'admin',
     assignedCompanies: ['COMP-002', 'COMP-003'],
-    lastLogin: '2025-02-06 09:00 AM',
+    lastLogin: '2026-03-16 09:00 AM',
     status: 'active',
   },
   {
@@ -388,7 +404,7 @@ export const mockAdmins: Admin[] = [
     phone: '+1 (305) 555-1010',
     role: 'admin',
     assignedCompanies: ['COMP-004', 'COMP-005'],
-    lastLogin: '2025-02-05 05:30 PM',
+    lastLogin: '2026-03-15 05:30 PM',
     status: 'active',
   },
   {
@@ -398,7 +414,7 @@ export const mockAdmins: Admin[] = [
     phone: '+1 (305) 555-1011',
     role: 'admin',
     assignedCompanies: ['COMP-001'],
-    lastLogin: '2025-02-04 10:00 AM',
+    lastLogin: '2026-03-14 10:00 AM',
     status: 'active',
   },
   {
@@ -408,7 +424,7 @@ export const mockAdmins: Admin[] = [
     phone: '+1 (305) 555-1012',
     role: 'admin',
     assignedCompanies: ['COMP-003', 'COMP-006'],
-    lastLogin: '2025-02-06 08:30 AM',
+    lastLogin: '2026-03-16 08:30 AM',
     status: 'active',
   },
 ];
@@ -420,11 +436,20 @@ export const mockCollections: ExtendedCollection[] = [
     propertyName: 'Beachfront Villa',
     propertyAddress: '123 Ocean Drive, Miami, FL 33139',
     collectionType: 'scheduled',
-    deadline: '2025-02-20',
+    deadline: '2026-03-20',
     status: 'running',
     priority: 'normal',
     manualOverride: false,
-    deliveryDate: '2025-02-06',
+    deliveryDate: '2026-03-06',
+    items: [
+      {
+        id: 'ITEM-001',
+        description: 'Initial bed linen collection',
+        quantities: { single: 2, double: 1, king: 1, superking: 0 },
+        imagePreviews: [],
+        addedAt: '2026-03-06',
+      }
+    ],
   },
   {
     id: 'COL-002',
@@ -432,11 +457,20 @@ export const mockCollections: ExtendedCollection[] = [
     propertyName: 'Downtown Loft',
     propertyAddress: '456 Main Street, Miami, FL 33130',
     collectionType: 'scheduled',
-    deadline: '2025-01-19',
+    deadline: '2026-03-01',
     status: 'overdue',
     priority: 'urgent',
     manualOverride: false,
-    deliveryDate: '2025-01-05',
+    deliveryDate: '2026-02-15',
+    items: [
+      {
+        id: 'ITEM-002',
+        description: 'Full property turnover',
+        quantities: { single: 0, double: 2, king: 0, superking: 0 },
+        imagePreviews: [],
+        addedAt: '2026-02-15',
+      }
+    ],
   },
   {
     id: 'COL-003',
@@ -444,11 +478,20 @@ export const mockCollections: ExtendedCollection[] = [
     propertyName: 'Sunset Apartment',
     propertyAddress: '789 Bay Road, Miami Beach, FL 33140',
     collectionType: 'scheduled',
-    deadline: '2025-02-25',
+    deadline: '2026-03-25',
     status: 'upcoming',
     priority: 'normal',
     manualOverride: true,
-    deliveryDate: '2025-02-05',
+    deliveryDate: '2026-03-11',
+    items: [
+      {
+        id: 'ITEM-003',
+        description: 'Guest change request',
+        quantities: { single: 1, double: 0, king: 1, superking: 0 },
+        imagePreviews: [],
+        addedAt: '2026-03-11',
+      }
+    ],
   },
   {
     id: 'COL-004',
@@ -456,11 +499,20 @@ export const mockCollections: ExtendedCollection[] = [
     propertyName: 'Luxury Penthouse',
     propertyAddress: '800 Bay Road, Miami Beach, FL 33140',
     collectionType: 'scheduled',
-    deadline: '2025-02-18',
+    deadline: '2026-03-18',
     status: 'running',
     priority: 'high',
     manualOverride: false,
-    deliveryDate: '2025-02-04',
+    deliveryDate: '2026-03-04',
+    items: [
+      {
+        id: 'ITEM-004',
+        description: 'Premium service collection',
+        quantities: { single: 0, double: 0, king: 2, superking: 1 },
+        imagePreviews: [],
+        addedAt: '2026-03-04',
+      }
+    ],
   },
   {
     id: 'COL-005',
@@ -468,11 +520,20 @@ export const mockCollections: ExtendedCollection[] = [
     propertyName: 'Harbor View Suite',
     propertyAddress: '321 Marina Way, Key Biscayne, FL 33149',
     collectionType: 'scheduled',
-    deadline: '2025-03-01',
+    deadline: '2026-04-01',
     status: 'upcoming',
     priority: 'normal',
     manualOverride: true,
-    deliveryDate: '2025-02-03',
+    deliveryDate: '2026-03-18',
+    items: [
+      {
+        id: 'ITEM-005',
+        description: 'Weekly scheduled collection',
+        quantities: { single: 2, double: 2, king: 0, superking: 0 },
+        imagePreviews: [],
+        addedAt: '2026-03-18',
+      }
+    ],
   },
   {
     id: 'COL-006',
@@ -480,11 +541,20 @@ export const mockCollections: ExtendedCollection[] = [
     propertyName: 'Marina Apartment',
     propertyAddress: '325 Marina Way, Key Biscayne, FL 33149',
     collectionType: 'scheduled',
-    deadline: '2025-02-22',
+    deadline: '2026-03-22',
     status: 'running',
     priority: 'normal',
     manualOverride: false,
-    deliveryDate: '2025-02-08',
+    deliveryDate: '2026-03-08',
+    items: [
+      {
+        id: 'ITEM-006',
+        description: 'Standard collection',
+        quantities: { single: 1, double: 1, king: 1, superking: 0 },
+        imagePreviews: [],
+        addedAt: '2026-03-08',
+      }
+    ],
   },
 ];
 
@@ -493,7 +563,7 @@ export const mockRequests: Request[] = [
     id: 'REQ-001',
     propertyId: 'PROP-006',
     propertyAddress: '789 Bay Road, Miami Beach, FL 33140',
-    requestDate: '2025-01-23',
+    requestDate: '2026-03-14',
     reason: 'guest-change',
     priority: 'high',
     assignedAdmin: null,
@@ -503,7 +573,7 @@ export const mockRequests: Request[] = [
     id: 'REQ-002',
     propertyId: 'PROP-001',
     propertyAddress: '123 Ocean Drive, Miami, FL 33139',
-    requestDate: '2025-01-22',
+    requestDate: '2026-03-12',
     reason: 'used',
     priority: 'normal',
     assignedAdmin: 'Maria Garcia',
@@ -513,7 +583,7 @@ export const mockRequests: Request[] = [
     id: 'REQ-003',
     propertyId: 'PROP-011',
     propertyAddress: '555 Palm Avenue, Coral Gables, FL 33134',
-    requestDate: '2025-01-24',
+    requestDate: '2026-03-15',
     reason: 'emergency',
     priority: 'urgent',
     assignedAdmin: null,

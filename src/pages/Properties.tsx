@@ -20,9 +20,10 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Plus, Search, FileEdit, ArrowLeft } from 'lucide-react';
-import { mockProperties, mockCompanies, getCompanyById, Property } from '@/lib/mockData';
+import { mockProperties, mockCompanies, getCompanyById, Property, mockCollections, ExtendedCollection, CategoryQuantity } from '@/lib/mockData';
 import { PropertyDetailsDialog } from '@/components/properties/PropertyDetailsDialog';
 import { useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
 
 export default function Properties() {
   const [searchParams] = useSearchParams();
@@ -68,6 +69,51 @@ export default function Properties() {
   const handleOpenDetails = (property: Property) => {
     setSelectedProperty(property);
     setDialogOpen(true);
+  };
+
+  const handlePropertySubmit = (details: {
+    description: string;
+    quantities: CategoryQuantity;
+    imagePreviews: string[];
+  }) => {
+    if (!selectedProperty) return;
+
+    // 1. Check if there's an active card (running or upcoming) for this property
+    const existingCollectionIndex = mockCollections.findIndex(
+      (c) => c.propertyId === selectedProperty.id && (c.status === 'running' || c.status === 'upcoming')
+    );
+
+    const newItem = {
+      id: `ITEM-${Math.random().toString(36).substr(2, 9)}`,
+      description: details.description,
+      quantities: details.quantities,
+      imagePreviews: details.imagePreviews,
+      addedAt: new Date().toISOString().split('T')[0],
+    };
+
+    if (existingCollectionIndex !== -1) {
+      // 2. If an active card exists, append the item
+      const existingCollection = mockCollections[existingCollectionIndex];
+      existingCollection.items = [...(existingCollection.items || []), newItem];
+      toast.success(`Added new item to existing ${existingCollection.status} collection for ${selectedProperty.name}`);
+    } else {
+      // 3. Otherwise, create a new card in "upcoming"
+      const newCollection: ExtendedCollection = {
+        id: `COL-${Math.random().toString(36).substr(2, 9)}`,
+        propertyId: selectedProperty.id,
+        propertyName: selectedProperty.name,
+        propertyAddress: selectedProperty.address,
+        collectionType: 'scheduled',
+        deadline: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // 7 days from now
+        status: 'upcoming',
+        priority: 'normal',
+        manualOverride: false,
+        deliveryDate: new Date().toISOString().split('T')[0],
+        items: [newItem],
+      };
+      mockCollections.push(newCollection);
+      toast.success(`New upcoming collection job generated for ${selectedProperty.name}`);
+    }
   };
 
   const handleBackToCompanies = () => {
@@ -209,6 +255,7 @@ export default function Properties() {
         open={dialogOpen}
         onOpenChange={setDialogOpen}
         property={selectedProperty}
+        onSubmit={handlePropertySubmit}
       />
     </div>
   );

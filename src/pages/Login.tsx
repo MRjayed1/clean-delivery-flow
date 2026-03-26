@@ -39,10 +39,32 @@ export default function Login() {
         <div className="dashboard-card p-8">
           {/* Logo */}
           <div className="flex flex-col items-center mb-8">
-            <div className="flex items-center justify-center w-14 h-14 rounded-xl bg-primary mb-4">
-              <Shirt className="w-7 h-7 text-primary-foreground" />
+            <div className="flex items-center justify-center w-14 h-14 rounded-xl bg-transparent mb-4 overflow-hidden shadow-sm">
+              <img 
+                src="/logu.svg/Gemini_Generated_Image_oy1oqsoy1oqsoy1o (1).png" 
+                alt="EasyLaundry Logo" 
+                className="w-full h-full object-contain"
+                onError={(e) => {
+                  const target = e.target as HTMLImageElement;
+                  target.style.display = 'none';
+                  const parent = target.parentElement;
+                  if (parent) {
+                    parent.classList.add('bg-gradient-to-br', 'from-primary', 'to-blue-600');
+                    const logoWrapper = document.createElement('div');
+                    logoWrapper.className = "flex items-center justify-center w-full h-full text-white font-bold select-none";
+                    logoWrapper.innerHTML = `
+                      <svg viewBox="0 0 100 100" class="w-10 h-10" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="50" cy="50" r="45" stroke="currentColor" stroke-width="6" />
+                        <path d="M40 30V70H65" stroke="currentColor" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M30 80C40 75 60 75 70 80" stroke="currentColor" stroke-width="3" stroke-linecap="round" opacity="0.6"/>
+                      </svg>
+                    `;
+                    parent.appendChild(logoWrapper);
+                  }
+                }}
+              />
             </div>
-            <h1 className="text-2xl font-semibold text-foreground">LaundryOps</h1>
+            <h1 className="text-2xl font-semibold text-foreground">EasyLaundry</h1>
             <p className="text-muted-foreground mt-1">Admin Portal</p>
           </div>
 

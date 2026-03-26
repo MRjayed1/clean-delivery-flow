@@ -11,25 +11,24 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Upload, X, Plus, Minus } from 'lucide-react';
-import { Property } from '@/lib/mockData';
-
-interface CategoryQuantity {
-  single: number;
-  double: number;
-  king: number;
-  superking: number;
-}
+import { Property, CategoryQuantity } from '@/lib/mockData';
 
 interface PropertyDetailsDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   property: Property | null;
+  onSubmit?: (details: {
+    description: string;
+    quantities: CategoryQuantity;
+    imagePreviews: string[];
+  }) => void;
 }
 
 export function PropertyDetailsDialog({
   open,
   onOpenChange,
   property,
+  onSubmit,
 }: PropertyDetailsDialogProps) {
   const [images, setImages] = useState<File[]>([]);
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
@@ -70,12 +69,13 @@ export function PropertyDetailsDialog({
   };
 
   const handleSubmit = () => {
-    console.log('Submitting:', {
-      propertyId: property?.id,
-      images,
-      description,
-      quantities,
-    });
+    if (onSubmit) {
+      onSubmit({
+        description,
+        quantities,
+        imagePreviews,
+      });
+    }
     // Reset form
     setImages([]);
     setImagePreviews([]);

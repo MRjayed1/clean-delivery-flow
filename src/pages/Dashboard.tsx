@@ -19,29 +19,34 @@ export default function Dashboard() {
             title="Total Companies"
             value={dashboardStats.totalCompanies}
             icon={Briefcase}
+            link="/companies"
           />
           <StatCard
             title="Total Properties"
             value={dashboardStats.totalProperties}
             icon={Building2}
+            link="/properties"
           />
           <StatCard
             title="Active Properties"
             value={dashboardStats.activeProperties}
             icon={CheckCircle}
             variant="success"
+            link="/properties?status=active"
           />
           <StatCard
             title="Pending Collections"
             value={dashboardStats.pendingCollections}
             icon={Clock}
             variant="warning"
+            link="/collections?tab=upcoming"
           />
           <StatCard
             title="Overdue Collections"
             value={dashboardStats.overdueCollections}
             icon={AlertTriangle}
             variant="destructive"
+            link="/collections?tab=overdue"
           />
           <StatCard
             title="Today's Pickups"

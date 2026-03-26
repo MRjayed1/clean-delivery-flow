@@ -1,0 +1,193 @@
+import { useState, useMemo, useEffect } from 'react';
+import { format, isSameDay, isBefore, startOfDay, parseISO } from 'date-fns';
+import { Calendar as CalendarIcon, MapPin, Package, Clock, LayoutList } from 'lucide-react';
+import { Calendar } from '@/components/ui/calendar';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Separator } from '@/components/ui/separator';
+import { mockCollections, ExtendedCollection } from '@/lib/mockData';
+import { cn } from '@/lib/utils';
+
+export function CollectionCalendar() {
+  const [date, setDate] = useState<Date | undefined>(new Date());
+  const [lastUpdate, setLastUpdate] = useState(Date.now());
+  const today = startOfDay(new Date());
+
+  // Periodically refresh to catch updates from mockCollections
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setLastUpdate(Date.now());
+    }, 1000);
+    return () => clearInterval(interval);
+  }, []);
+
+  // Only track "Running" properties
+  const runningCollections = useMemo(() => 
+    mockCollections.filter(c => c.status === 'running'), 
+  [lastUpdate]);
+
+  // Group running collections by deadline date
+  const deadlinesMap = useMemo(() => {
+    const map: Record<string, ExtendedCollection[]> = {};
+    runningCollections.forEach(c => {
+      const d = c.deadline;
+      if (!map[d]) map[d] = [];
+      map[d].push(c);
+    });
+    return map;
+  }, [runningCollections]);
+
+  // Check if today has any deadlines for the notification dot
+  const hasTodayDeadline = useMemo(() => {
+    const todayStr = format(today, 'yyyy-MM-dd');
+    return !!deadlinesMap[todayStr];
+  }, [deadlinesMap, today]);
+
+  // Selected date collections
+  const selectedDateStr = date ? format(date, 'yyyy-MM-dd') : '';
+  const selectedCollections = deadlinesMap[selectedDateStr] || [];
+
+  // Custom day rendering for the calendar
+  const modifiers = {
+    deadline: (d: Date) => !!deadlinesMap[format(d, 'yyyy-MM-dd')],
+    pastDue: (d: Date) => {
+      const dStr = format(d, 'yyyy-MM-dd');
+      return !!deadlinesMap[dStr] && (isSameDay(d, today) || isBefore(d, today));
+    },
+  };
+
+  const modifiersStyles = {
+    deadline: {
+      fontWeight: 'bold',
+      textDecoration: 'underline',
+    },
+  };
+
+  const scrollToProperty = (propertyId: string) => {
+    const element = document.getElementById(`collection-${propertyId}`);
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      element.classList.add('ring-2', 'ring-primary', 'ring-offset-2');
+      setTimeout(() => {
+        element.classList.remove('ring-2', 'ring-primary', 'ring-offset-2');
+      }, 2000);
+    }
+  };
+
+  return (
+    <Popover>
+      <PopoverTrigger asChild>
+        <Button variant="ghost" size="icon" className="relative">
+          <CalendarIcon className="h-5 w-5" />
+          {hasTodayDeadline && (
+            <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-destructive animate-pulse" />
+          )}
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent align="end" className="w-[350px] p-0 bg-popover z-50 shadow-xl border-border">
+        <div className="p-4 border-b border-border bg-muted/30">
+          <h3 className="font-semibold flex items-center gap-2">
+            <Clock className="w-4 h-4 text-primary" />
+            Collection Reminders
+          </h3>
+          <p className="text-xs text-muted-foreground mt-1">
+            Showing deadlines for active running cycles
+          </p>
+        </div>
+
+        <div className="p-3">
+          <Calendar
+            mode="single"
+            selected={date}
+            onSelect={setDate}
+            className="rounded-md border shadow-sm bg-background"
+            modifiers={modifiers}
+            modifiersClassNames={{
+              deadline: "bg-primary/10 text-primary font-bold hover:bg-primary/20",
+              pastDue: "bg-destructive/10 text-destructive font-bold hover:bg-destructive/20",
+            }}
+            components={{
+              DayContent: ({ date: dayDate }) => {
+                const dateStr = format(dayDate, 'yyyy-MM-dd');
+                const count = deadlinesMap[dateStr]?.length || 0;
+                return (
+                  <div className="relative w-full h-full flex items-center justify-center">
+                    <span>{dayDate.getDate()}</span>
+                    {count > 0 && (
+                      <span className={cn(
+                        "absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full text-[10px] font-bold",
+                        isSameDay(dayDate, today) || isBefore(dayDate, today) 
+                          ? "bg-destructive text-destructive-foreground" 
+                          : "bg-primary text-primary-foreground"
+                      )}>
+                        {count}
+                      </span>
+                    )}
+                  </div>
+                );
+              }
+            }}
+          />
+        </div>
+
+        <Separator />
+
+        <div className="p-4">
+          <h4 className="text-sm font-medium mb-3 flex items-center justify-between">
+            <span>{date ? format(date, 'MMMM d, yyyy') : 'Select a date'}</span>
+            {selectedCollections.length > 0 && (
+              <Badge variant="outline" className="text-[10px]">
+                {selectedCollections.length} Due
+              </Badge>
+            )}
+          </h4>
+
+          <ScrollArea className="h-[200px] -mx-1 px-1">
+            {selectedCollections.length > 0 ? (
+              <div className="space-y-3">
+                {selectedCollections.map((c) => (
+                  <div 
+                    key={c.id} 
+                    className="p-3 rounded-lg border border-border bg-card hover:bg-accent/50 transition-colors cursor-pointer group"
+                    onClick={() => scrollToProperty(c.propertyId)}
+                  >
+                    <div className="flex justify-between items-start mb-1">
+                      <p className="text-sm font-semibold group-hover:text-primary transition-colors">{c.propertyName}</p>
+                    </div>
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
+                        <MapPin className="w-3 h-3" />
+                        <span className="truncate">{c.propertyAddress}</span>
+                      </div>
+                      <div className="flex items-center gap-3 mt-2">
+                        <div className="flex items-center gap-1 text-[10px] bg-muted px-1.5 py-0.5 rounded">
+                          <Package className="w-3 h-3" />
+                          <span>Delivered: {c.deliveryDate}</span>
+                        </div>
+                        <div className="flex items-center gap-1 text-[10px] bg-primary/5 text-primary px-1.5 py-0.5 rounded font-medium">
+                          <LayoutList className="w-3 h-3" />
+                          <span>{c.items?.length || 0} Items</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="h-full flex flex-col items-center justify-center text-center py-8 opacity-60">
+                <CalendarIcon className="w-8 h-8 text-muted-foreground mb-2" />
+                <p className="text-xs text-muted-foreground">No collections due on this date.</p>
+              </div>
+            )}
+          </ScrollArea>
+        </div>
+      </PopoverContent>
+    </Popover>
+  );
+}
