@@ -22,3 +22,16 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Environment and Secrets
+.env
+backend/.env
+backend/credentials/
+
+# Python
+__pycache__/
+backend/__pycache__/
+backend/chatbot/__pycache__/
+
+# Misc
+tunnel_url.txt

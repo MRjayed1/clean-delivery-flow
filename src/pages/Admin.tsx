@@ -27,15 +27,24 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Search, Plus, Shield, ShieldCheck, Mail, Phone, Building2, Clock } from 'lucide-react';
+import { Search, Plus, Shield, ShieldCheck, Mail, Phone, Building2, Clock, Trash2 } from 'lucide-react';
 import { mockAdmins, mockCompanies, Admin } from '@/lib/mockData';
+import { toast } from 'sonner';
 
 export default function AdminPage() {
+  const [admins, setAdmins] = useState<Admin[]>(mockAdmins);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
 
-  const filteredAdmins = mockAdmins.filter((admin) => {
+  // New admin form state
+  const [newAdminName, setNewAdminName] = useState('');
+  const [newAdminEmail, setNewAdminEmail] = useState('');
+  const [newAdminPhone, setNewAdminPhone] = useState('');
+  const [newAdminRole, setNewAdminRole] = useState<'super-admin' | 'employee'>('employee');
+  const [newAdminCompanies, setNewAdminCompanies] = useState<string[]>([]);
+
+  const filteredAdmins = admins.filter((admin) => {
     const matchesSearch =
       admin.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       admin.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -51,8 +60,44 @@ export default function AdminPage() {
       .join(', ') + (companyIds.length > 2 ? ` +${companyIds.length - 2} more` : '');
   };
 
-  const activeAdmins = mockAdmins.filter((a) => a.status === 'active').length;
-  const superAdmins = mockAdmins.filter((a) => a.role === 'super-admin').length;
+  const activeAdmins = admins.filter((a) => a.status === 'active').length;
+  const superAdmins = admins.filter((a) => a.role === 'super-admin').length;
+
+  const handleDeleteAdmin = (id: string) => {
+    if (window.confirm('Are you sure you want to remove this admin?')) {
+      setAdmins((prev) => prev.filter((a) => a.id !== id));
+      toast.success('Admin removed successfully');
+    }
+  };
+
+  const handleAddAdmin = () => {
+    if (!newAdminName.trim() || !newAdminEmail.trim()) {
+      toast.error('Name and email are required');
+      return;
+    }
+
+    const newAdmin: Admin = {
+      id: `ADM-${Math.random().toString(36).substr(2, 6).toUpperCase()}`,
+      name: newAdminName,
+      email: newAdminEmail,
+      phone: newAdminPhone || '+1 (555) 000-0000',
+      role: newAdminRole,
+      status: 'active',
+      lastLogin: new Date().toISOString().split('T')[0] + ' 09:00 AM',
+      companyIds: newAdminCompanies,
+    };
+
+    setAdmins((prev) => [...prev, newAdmin]);
+    toast.success('Admin added successfully');
+    
+    // Reset form
+    setNewAdminName('');
+    setNewAdminEmail('');
+    setNewAdminPhone('');
+    setNewAdminRole('employee');
+    setNewAdminCompanies([]);
+    setIsAddDialogOpen(false);
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -71,7 +116,7 @@ export default function AdminPage() {
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Total Admins</p>
-                <p className="text-2xl font-semibold">{mockAdmins.length}</p>
+                <p className="text-2xl font-semibold">{admins.length}</p>
               </div>
             </div>
           </div>
@@ -140,25 +185,41 @@ export default function AdminPage() {
               <div className="space-y-4 py-4">
                 <div className="space-y-2">
                   <Label htmlFor="admin-name">Full Name</Label>
-                  <Input id="admin-name" placeholder="Enter full name" />
+                  <Input 
+                    id="admin-name" 
+                    placeholder="Enter full name" 
+                    value={newAdminName}
+                    onChange={(e) => setNewAdminName(e.target.value)}
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="admin-email">Email Address</Label>
-                  <Input id="admin-email" type="email" placeholder="admin@laundryops.com" />
+                  <Input 
+                    id="admin-email" 
+                    type="email" 
+                    placeholder="admin@laundryops.com" 
+                    value={newAdminEmail}
+                    onChange={(e) => setNewAdminEmail(e.target.value)}
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="admin-phone">Phone Number</Label>
-                  <Input id="admin-phone" placeholder="+1 (305) 555-0000" />
+                  <Input 
+                    id="admin-phone" 
+                    placeholder="+1 (305) 555-0000" 
+                    value={newAdminPhone}
+                    onChange={(e) => setNewAdminPhone(e.target.value)}
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="admin-role">Role</Label>
-                  <Select defaultValue="admin">
+                  <Select value={newAdminRole} onValueChange={(v) => setNewAdminRole(v as 'super-admin' | 'employee')}>
                     <SelectTrigger id="admin-role" className="bg-card">
                       <SelectValue placeholder="Select role" />
                     </SelectTrigger>
                     <SelectContent className="bg-popover z-50">
                       <SelectItem value="super-admin">Super Admin</SelectItem>
-                      <SelectItem value="admin">Admin</SelectItem>
+                      <SelectItem value="employee">Employee</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -173,7 +234,18 @@ export default function AdminPage() {
                         key={company.id}
                         className="flex items-center gap-2 p-2 rounded-lg border border-border hover:bg-muted/50 cursor-pointer text-sm"
                       >
-                        <input type="checkbox" className="rounded" />
+                        <input 
+                          type="checkbox" 
+                          className="rounded" 
+                          checked={newAdminCompanies.includes(company.id)}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setNewAdminCompanies(prev => [...prev, company.id]);
+                            } else {
+                              setNewAdminCompanies(prev => prev.filter(id => id !== company.id));
+                            }
+                          }}
+                        />
                         <span className="truncate">{company.name}</span>
                       </label>
                     ))}
@@ -187,7 +259,7 @@ export default function AdminPage() {
                   >
                     Cancel
                   </Button>
-                  <Button className="flex-1" onClick={() => setIsAddDialogOpen(false)}>
+                  <Button className="flex-1" onClick={handleAddAdmin}>
                     Create Admin
                   </Button>
                 </div>
@@ -245,7 +317,7 @@ export default function AdminPage() {
                       variant={admin.role === 'super-admin' ? 'default' : 'secondary'}
                       className="capitalize"
                     >
-                      {admin.role === 'super-admin' ? 'Super Admin' : 'Admin'}
+                      {admin.role === 'super-admin' ? 'Super Admin' : 'Employee'}
                     </Badge>
                   </TableCell>
                   <TableCell>
@@ -269,19 +341,13 @@ export default function AdminPage() {
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="flex gap-2 justify-end">
-                      <Button variant="outline" size="sm">
-                        Edit
-                      </Button>
                       <Button
-                        variant="outline"
+                        variant="ghost"
                         size="sm"
-                        className={
-                          admin.status === 'active'
-                            ? 'text-destructive hover:text-destructive'
-                            : 'text-success hover:text-success'
-                        }
+                        className="text-destructive hover:bg-destructive/10"
+                        onClick={() => handleDeleteAdmin(admin.id)}
                       >
-                        {admin.status === 'active' ? 'Deactivate' : 'Activate'}
+                        <Trash2 className="w-4 h-4" />
                       </Button>
                     </div>
                   </TableCell>

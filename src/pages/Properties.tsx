@@ -3,6 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import { Header } from '@/components/layout/Header';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import {
   Table,
@@ -19,7 +20,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Plus, Search, FileEdit, ArrowLeft } from 'lucide-react';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from '@/components/ui/dialog';
+import { Plus, Search, FileEdit, ArrowLeft, Building2, CheckCircle2, Trash2 } from 'lucide-react';
 import { mockProperties, mockCompanies, getCompanyById, Property, mockCollections, ExtendedCollection, CategoryQuantity } from '@/lib/mockData';
 import { PropertyDetailsDialog } from '@/components/properties/PropertyDetailsDialog';
 import { useNavigate } from 'react-router-dom';
@@ -29,12 +38,25 @@ export default function Properties() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const companyIdFromUrl = searchParams.get('company');
-  
+
+  const [properties, setProperties] = useState<Property[]>(mockProperties);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [companyFilter, setCompanyFilter] = useState<string>(companyIdFromUrl || 'all');
   const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
+
+  // Add Property dialog state
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [justAdded, setJustAdded] = useState('');
+
+  // Add Property form state
+  const [newName, setNewName] = useState('');
+  const [newAddress, setNewAddress] = useState('');
+  const [newContactPerson, setNewContactPerson] = useState('');
+  const [newContactPhone, setNewContactPhone] = useState('');
+  const [newCompanyId, setNewCompanyId] = useState('');
+  const [newStatus, setNewStatus] = useState<'active' | 'pending'>('active');
 
   // Update company filter when URL changes
   useEffect(() => {
@@ -45,7 +67,7 @@ export default function Properties() {
 
   const selectedCompany = companyFilter !== 'all' ? getCompanyById(companyFilter) : null;
 
-  const filteredProperties = mockProperties.filter((property) => {
+  const filteredProperties = properties.filter((property) => {
     const matchesSearch =
       property.address.toLowerCase().includes(searchTerm.toLowerCase()) ||
       property.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -116,6 +138,52 @@ export default function Properties() {
     }
   };
 
+  const handleAddProperty = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newName.trim() || !newAddress.trim() || !newCompanyId) return;
+
+    const today = new Date().toISOString().split('T')[0];
+    const nextWeek = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+    const newId = `PROP-${String(properties.length + 1).padStart(3, '0')}`;
+
+    const newProperty: Property = {
+      id: newId,
+      companyId: newCompanyId,
+      name: newName.trim(),
+      address: newAddress.trim(),
+      contactPerson: newContactPerson.trim() || 'Not assigned',
+      contactPhone: newContactPhone.trim() || '+880 0000-000000',
+      lastDeliveryDate: today,
+      nextCollectionDate: nextWeek,
+      status: newStatus,
+    };
+
+    setProperties((prev) => [newProperty, ...prev]);
+    // Also push into the shared mock array so other pages see it
+    mockProperties.unshift(newProperty);
+
+    setJustAdded(newId);
+    setTimeout(() => setJustAdded(''), 3000);
+
+    toast.success(`Property "${newName.trim()}" added successfully!`);
+
+    // Reset form
+    setNewName('');
+    setNewAddress('');
+    setNewContactPerson('');
+    setNewContactPhone('');
+    setNewCompanyId('');
+    setNewStatus('active');
+    setIsAddDialogOpen(false);
+  };
+
+  const handleDeleteProperty = (id: string) => {
+    if (window.confirm('Are you sure you want to remove this property?')) {
+      setProperties((prev) => prev.filter((p) => p.id !== id));
+      toast.success('Property removed successfully');
+    }
+  };
+
   const handleBackToCompanies = () => {
     navigate('/companies');
   };
@@ -133,6 +201,14 @@ export default function Properties() {
       />
 
       <main className="p-6 space-y-6 animate-fade-in">
+        {/* Success toast */}
+        {justAdded && (
+          <div className="flex items-center gap-2 p-3 rounded-lg bg-emerald-500/10 text-emerald-700 text-sm font-semibold border border-emerald-500/20 animate-fade-in">
+            <CheckCircle2 className="w-4 h-4" />
+            <span>Property {justAdded} added successfully!</span>
+          </div>
+        )}
+
         {/* Back button when viewing company properties */}
         {selectedCompany && (
           <div className="flex items-center gap-4">
@@ -185,7 +261,7 @@ export default function Properties() {
               </SelectContent>
             </Select>
           </div>
-          <Button>
+          <Button onClick={() => setIsAddDialogOpen(true)}>
             <Plus className="w-4 h-4 mr-2" />
             Add Property
           </Button>
@@ -209,7 +285,10 @@ export default function Properties() {
               {filteredProperties.map((property) => {
                 const company = getCompanyById(property.companyId);
                 return (
-                  <TableRow key={property.id} className="table-row cursor-pointer">
+                  <TableRow
+                    key={property.id}
+                    className={`table-row cursor-pointer ${justAdded === property.id ? 'bg-emerald-500/5 ring-1 ring-emerald-500/20' : ''}`}
+                  >
                     <TableCell className="pl-6 font-medium">{property.id}</TableCell>
                     {!selectedCompany && (
                       <TableCell>
@@ -228,14 +307,24 @@ export default function Properties() {
                     <TableCell>{property.nextCollectionDate}</TableCell>
                     <TableCell>{getStatusBadge(property.status)}</TableCell>
                     <TableCell className="pr-6 text-right">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleOpenDetails(property)}
-                      >
-                        <FileEdit className="w-4 h-4 mr-2" />
-                        Add Details
-                      </Button>
+                      <div className="flex gap-2 justify-end">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleOpenDetails(property)}
+                        >
+                          <FileEdit className="w-4 h-4 mr-2" />
+                          Add Details
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="text-destructive hover:bg-destructive/10"
+                          onClick={() => handleDeleteProperty(property.id)}
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
                     </TableCell>
                   </TableRow>
                 );
@@ -257,6 +346,107 @@ export default function Properties() {
         property={selectedProperty}
         onSubmit={handlePropertySubmit}
       />
+
+      {/* Add Property Dialog */}
+      <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Building2 className="w-5 h-5 text-primary" />
+              Add New Property
+            </DialogTitle>
+            <DialogDescription>
+              Register a new property to manage its collections and deliveries.
+            </DialogDescription>
+          </DialogHeader>
+
+          <form onSubmit={handleAddProperty} className="space-y-4 mt-2">
+            <div className="space-y-2">
+              <Label htmlFor="prop-name">Property Name *</Label>
+              <Input
+                id="prop-name"
+                placeholder="e.g. Beachfront Villa"
+                value={newName}
+                onChange={(e) => setNewName(e.target.value)}
+                required
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="prop-address">Address *</Label>
+              <Input
+                id="prop-address"
+                placeholder="e.g. 123 Ocean Drive, Miami, FL 33139"
+                value={newAddress}
+                onChange={(e) => setNewAddress(e.target.value)}
+                required
+              />
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="prop-contact">Contact Person</Label>
+                <Input
+                  id="prop-contact"
+                  placeholder="e.g. John Smith"
+                  value={newContactPerson}
+                  onChange={(e) => setNewContactPerson(e.target.value)}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="prop-phone">Contact Phone</Label>
+                <Input
+                  id="prop-phone"
+                  type="tel"
+                  placeholder="e.g. +880 1712-345678"
+                  value={newContactPhone}
+                  onChange={(e) => setNewContactPhone(e.target.value)}
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="prop-company">Assign to Company *</Label>
+                <Select value={newCompanyId} onValueChange={setNewCompanyId} required>
+                  <SelectTrigger id="prop-company" className="bg-card">
+                    <SelectValue placeholder="Select company" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-popover z-50">
+                    {mockCompanies.map((company) => (
+                      <SelectItem key={company.id} value={company.id}>
+                        {company.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="prop-status">Status</Label>
+                <Select value={newStatus} onValueChange={(v) => setNewStatus(v as 'active' | 'pending')}>
+                  <SelectTrigger id="prop-status" className="bg-card">
+                    <SelectValue placeholder="Select status" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-popover z-50">
+                    <SelectItem value="active">Active</SelectItem>
+                    <SelectItem value="pending">Pending</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <DialogFooter className="pt-4">
+              <Button type="button" variant="outline" onClick={() => setIsAddDialogOpen(false)}>
+                Cancel
+              </Button>
+              <Button type="submit" disabled={!newName.trim() || !newAddress.trim() || !newCompanyId}>
+                <Plus className="w-4 h-4 mr-2" />
+                Add Property
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

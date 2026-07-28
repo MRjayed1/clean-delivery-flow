@@ -14,7 +14,11 @@ import Admin from "./pages/Admin";
 import Reports from "./pages/Reports";
 import Settings from "./pages/Settings";
 import Login from "./pages/Login";
+import CustomerServices from "./pages/CustomerServices";
+import TrackOrder from "./pages/TrackOrder";
 import NotFound from "./pages/NotFound";
+import CustomerOrdersAdmin from "./pages/CustomerOrdersAdmin";
+import { ProtectedRoute } from "./components/layout/ProtectedRoute";
 
 const queryClient = new QueryClient();
 
@@ -26,15 +30,18 @@ const App = () => (
       <BrowserRouter>
         <Routes>
           <Route path="/login" element={<Login />} />
-          <Route element={<AppLayout />}>
-            <Route path="/" element={<Index />} />
-            <Route path="/companies" element={<Companies />} />
+          <Route path="/" element={<CustomerServices />} />
+          <Route path="/track-order" element={<TrackOrder />} />
+          <Route element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>
+            <Route path="/dashboard" element={<ProtectedRoute requiredRole="super-admin"><Index /></ProtectedRoute>} />
+            <Route path="/companies" element={<ProtectedRoute requiredRole="super-admin"><Companies /></ProtectedRoute>} />
             <Route path="/properties" element={<Properties />} />
             <Route path="/collections" element={<Collections />} />
-            <Route path="/requests" element={<Requests />} />
-            <Route path="/admin" element={<Admin />} />
-            <Route path="/reports" element={<Reports />} />
-            <Route path="/settings" element={<Settings />} />
+            <Route path="/requests" element={<ProtectedRoute requiredRole="super-admin"><Requests /></ProtectedRoute>} />
+            <Route path="/admin" element={<ProtectedRoute requiredRole="super-admin"><Admin /></ProtectedRoute>} />
+            <Route path="/reports" element={<ProtectedRoute requiredRole="super-admin"><Reports /></ProtectedRoute>} />
+            <Route path="/settings" element={<ProtectedRoute requiredRole="super-admin"><Settings /></ProtectedRoute>} />
+            <Route path="/customer-orders" element={<CustomerOrdersAdmin />} />
           </Route>
           <Route path="*" element={<NotFound />} />
         </Routes>

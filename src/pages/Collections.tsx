@@ -23,7 +23,7 @@ export default function Collections() {
     const interval = setInterval(() => {
       // Create a stringified version of the data we care about for a deep comparison
       const getComparisonString = (data: ExtendedCollection[]) => 
-        data.map(c => `${c.id}-${c.status}-${c.items?.length || 0}`).join('|');
+        data.map(c => `${c.id}-${c.status}-${c.items?.length || 0}-${c.items?.reduce((acc, item) => acc + (item.imagePreviews?.length || 0), 0) || 0}`).join('|');
       
       const mockStr = getComparisonString(mockCollections);
       const currentStr = getComparisonString(collections);
@@ -32,7 +32,11 @@ export default function Collections() {
         // Use a functional update and deep clone to ensure React detects the change
         setCollections([...mockCollections].map(c => ({
           ...c,
-          items: c.items ? [...c.items.map(item => ({ ...item, quantities: { ...item.quantities } }))] : []
+          items: c.items ? c.items.map(item => ({ 
+            ...item, 
+            quantities: { ...item.quantities },
+            imagePreviews: item.imagePreviews ? [...item.imagePreviews] : []
+          })) : []
         })));
       }
     }, 1000);
@@ -103,7 +107,7 @@ export default function Collections() {
           )}
         </div>
 
-        <Tabs defaultValue={defaultTab} onValueChange={handleTabChange} className="w-full">
+        <Tabs value={defaultTab} onValueChange={handleTabChange} className="w-full">
           <TabsList className="mb-6 bg-muted/50 flex-wrap h-auto gap-1 p-1">
             <TabsTrigger value="running" className="data-[state=active]:bg-card">
               <PlayCircle className="w-4 h-4 mr-2" />

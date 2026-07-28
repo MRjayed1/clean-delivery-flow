@@ -83,12 +83,12 @@ export function CollectionCard({
             </p>
           </div>
 
-          {/* Item List Summary for Running section */}
-          {collection.status === 'running' && collection.items && collection.items.length > 0 && (
+          {/* Item List Summary */}
+          {collection.items && collection.items.length > 0 && (
             <div className="mt-4 pt-4 border-t border-border/50">
               <div className="flex items-center gap-2 mb-3">
                 <LayoutList className="w-4 h-4 text-primary" />
-                <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Active Laundry Cycle</span>
+                <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Laundry Cycle Items</span>
               </div>
               <ul className="space-y-3">
                 {collection.items.map((item, index) => {
@@ -169,12 +169,17 @@ export function CollectionCard({
                 
                 {collection.status === 'overdue' && (
                   <Button
-                    variant="ghost"
+                    variant="default"
                     size="sm"
-                    disabled
-                    className="flex items-center justify-center gap-2"
+                    onClick={() => {
+                      onUpdateCollection(collection.id, { status: 'completed' });
+                      const currentCount = parseInt(localStorage.getItem('collectionsReceived') || '0', 10);
+                      localStorage.setItem('collectionsReceived', (currentCount + 1).toString());
+                    }}
+                    className="flex items-center justify-center gap-2 bg-success hover:bg-success/90 text-white"
                   >
-                    Expired Cycle
+                    <CheckCircle className="w-4 h-4" />
+                    Received
                   </Button>
                 )}
               </div>

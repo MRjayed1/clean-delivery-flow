@@ -1,5 +1,6 @@
 import { useState, useMemo, useEffect } from 'react';
 import { format, isSameDay, isBefore, startOfDay, parseISO } from 'date-fns';
+import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import { Calendar as CalendarIcon, MapPin, Package, Clock, LayoutList } from 'lucide-react';
 import { Calendar } from '@/components/ui/calendar';
 import {
@@ -27,57 +28,75 @@ export function CollectionCalendar() {
     return () => clearInterval(interval);
   }, []);
 
-  // Only track "Running" properties
-  const runningCollections = useMemo(() => 
-    mockCollections.filter(c => c.status === 'running'), 
+  // Track both "Running" and "Overdue" properties
+  const trackedCollections = useMemo(() => 
+    mockCollections.filter(c => c.status === 'running' || c.status === 'overdue'), 
   [lastUpdate]);
 
-  // Group running collections by deadline date
-  const deadlinesMap = useMemo(() => {
+  const runningMap = useMemo(() => {
     const map: Record<string, ExtendedCollection[]> = {};
-    runningCollections.forEach(c => {
+    trackedCollections.filter(c => c.status === 'running').forEach(c => {
       const d = c.deadline;
       if (!map[d]) map[d] = [];
       map[d].push(c);
     });
     return map;
-  }, [runningCollections]);
+  }, [trackedCollections]);
+
+  const overdueMap = useMemo(() => {
+    const map: Record<string, ExtendedCollection[]> = {};
+    trackedCollections.filter(c => c.status === 'overdue').forEach(c => {
+      const d = c.deadline;
+      if (!map[d]) map[d] = [];
+      map[d].push(c);
+    });
+    return map;
+  }, [trackedCollections]);
 
   // Check if today has any deadlines for the notification dot
   const hasTodayDeadline = useMemo(() => {
     const todayStr = format(today, 'yyyy-MM-dd');
-    return !!deadlinesMap[todayStr];
-  }, [deadlinesMap, today]);
+    return !!runningMap[todayStr] || !!overdueMap[todayStr];
+  }, [runningMap, overdueMap, today]);
 
   // Selected date collections
   const selectedDateStr = date ? format(date, 'yyyy-MM-dd') : '';
-  const selectedCollections = deadlinesMap[selectedDateStr] || [];
+  const selectedCollections = [...(runningMap[selectedDateStr] || []), ...(overdueMap[selectedDateStr] || [])];
 
   // Custom day rendering for the calendar
   const modifiers = {
-    deadline: (d: Date) => !!deadlinesMap[format(d, 'yyyy-MM-dd')],
-    pastDue: (d: Date) => {
-      const dStr = format(d, 'yyyy-MM-dd');
-      return !!deadlinesMap[dStr] && (isSameDay(d, today) || isBefore(d, today));
-    },
+    running: (d: Date) => !!runningMap[format(d, 'yyyy-MM-dd')],
+    overdue: (d: Date) => !!overdueMap[format(d, 'yyyy-MM-dd')],
   };
 
   const modifiersStyles = {
-    deadline: {
+    running: {
       fontWeight: 'bold',
       textDecoration: 'underline',
     },
+    overdue: {
+      fontWeight: 'bold',
+      textDecoration: 'underline',
+    }
   };
 
-  const scrollToProperty = (propertyId: string) => {
-    const element = document.getElementById(`collection-${propertyId}`);
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      element.classList.add('ring-2', 'ring-primary', 'ring-offset-2');
-      setTimeout(() => {
-        element.classList.remove('ring-2', 'ring-primary', 'ring-offset-2');
-      }, 2000);
-    }
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  const scrollToProperty = (propertyId: string, status: string) => {
+    // Switch to the correct tab first
+    setSearchParams({ tab: status });
+
+    // Wait for the DOM to update with the newly rendered tab content, then scroll
+    setTimeout(() => {
+      const element = document.getElementById(`collection-${propertyId}`);
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        element.classList.add('ring-2', 'ring-primary', 'ring-offset-2');
+        setTimeout(() => {
+          element.classList.remove('ring-2', 'ring-primary', 'ring-offset-2');
+        }, 2000);
+      }
+    }, 150); // slight delay ensures the new tab content is mounted
   };
 
   return (
@@ -97,7 +116,7 @@ export function CollectionCalendar() {
             Collection Reminders
           </h3>
           <p className="text-xs text-muted-foreground mt-1">
-            Showing deadlines for active running cycles
+            Showing deadlines for active and overdue cycles
           </p>
         </div>
 
@@ -109,24 +128,28 @@ export function CollectionCalendar() {
             className="rounded-md border shadow-sm bg-background"
             modifiers={modifiers}
             modifiersClassNames={{
-              deadline: "bg-primary/10 text-primary font-bold hover:bg-primary/20",
-              pastDue: "bg-destructive/10 text-destructive font-bold hover:bg-destructive/20",
+              running: "bg-primary/10 text-primary font-bold hover:bg-primary/20",
+              overdue: "bg-destructive/10 text-destructive font-bold hover:bg-destructive/20",
             }}
             components={{
               DayContent: ({ date: dayDate }) => {
                 const dateStr = format(dayDate, 'yyyy-MM-dd');
-                const count = deadlinesMap[dateStr]?.length || 0;
+                const runningCount = runningMap[dateStr]?.length || 0;
+                const overdueCount = overdueMap[dateStr]?.length || 0;
+                const totalCount = runningCount + overdueCount;
+                const isOverdue = overdueCount > 0;
+                
                 return (
                   <div className="relative w-full h-full flex items-center justify-center">
                     <span>{dayDate.getDate()}</span>
-                    {count > 0 && (
+                    {totalCount > 0 && (
                       <span className={cn(
                         "absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full text-[10px] font-bold",
-                        isSameDay(dayDate, today) || isBefore(dayDate, today) 
+                        isOverdue 
                           ? "bg-destructive text-destructive-foreground" 
                           : "bg-primary text-primary-foreground"
                       )}>
-                        {count}
+                        {totalCount}
                       </span>
                     )}
                   </div>
@@ -154,11 +177,22 @@ export function CollectionCalendar() {
                 {selectedCollections.map((c) => (
                   <div 
                     key={c.id} 
-                    className="p-3 rounded-lg border border-border bg-card hover:bg-accent/50 transition-colors cursor-pointer group"
-                    onClick={() => scrollToProperty(c.propertyId)}
+                    className={cn(
+                      "p-3 rounded-lg border bg-card hover:bg-accent/50 transition-colors cursor-pointer group",
+                      c.status === 'overdue' ? "border-destructive/40 hover:border-destructive/60" : "border-primary/30 hover:border-primary/50"
+                    )}
+                    onClick={() => scrollToProperty(c.propertyId, c.status)}
                   >
                     <div className="flex justify-between items-start mb-1">
-                      <p className="text-sm font-semibold group-hover:text-primary transition-colors">{c.propertyName}</p>
+                      <p className={cn(
+                        "text-sm font-semibold transition-colors",
+                        c.status === 'overdue' ? "group-hover:text-destructive text-destructive/90" : "group-hover:text-primary"
+                      )}>
+                        {c.propertyName}
+                      </p>
+                      <Badge variant={c.status === 'overdue' ? 'destructive' : 'default'} className="text-[9px] px-1 py-0 h-4">
+                        {c.status === 'overdue' ? 'Overdue' : 'Running'}
+                      </Badge>
                     </div>
                     <div className="space-y-1">
                       <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
@@ -170,7 +204,10 @@ export function CollectionCalendar() {
                           <Package className="w-3 h-3" />
                           <span>Delivered: {c.deliveryDate}</span>
                         </div>
-                        <div className="flex items-center gap-1 text-[10px] bg-primary/5 text-primary px-1.5 py-0.5 rounded font-medium">
+                        <div className={cn(
+                          "flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded font-medium",
+                          c.status === 'overdue' ? "bg-destructive/10 text-destructive" : "bg-primary/5 text-primary"
+                        )}>
                           <LayoutList className="w-3 h-3" />
                           <span>{c.items?.length || 0} Items</span>
                         </div>

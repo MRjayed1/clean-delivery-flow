@@ -3,8 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Shirt, AlertCircle } from 'lucide-react';
-import { authenticateAdmin } from '@/lib/mockData';
+import { AlertCircle, User } from 'lucide-react';
+import { authenticateAdmin, demoAdminAccounts } from '@/lib/mockData';
 
 export default function Login() {
   const navigate = useNavigate();
@@ -18,19 +18,27 @@ export default function Login() {
     setError('');
     setIsLoading(true);
 
-    // Simulate network delay
     setTimeout(() => {
-      const admin = authenticateAdmin(email, password);
+      const admin = authenticateAdmin(email.trim(), password.trim());
       
       if (admin) {
-        // Store admin info in localStorage (for demo purposes)
         localStorage.setItem('currentAdmin', JSON.stringify(admin));
-        navigate('/');
+        if (admin.role === 'employee') {
+          navigate('/properties');
+        } else {
+          navigate('/dashboard');
+        }
       } else {
         setError('Invalid email or password. Please try again.');
       }
       setIsLoading(false);
     }, 500);
+  };
+
+  const handleDemoClick = (demoEmail: string, demoPassword: string) => {
+    setEmail(demoEmail);
+    setPassword(demoPassword);
+    setError('');
   };
 
   return (
@@ -83,7 +91,7 @@ export default function Login() {
               <Input
                 id="email"
                 type="email"
-                placeholder="admin@laundryops.com"
+                placeholder="Enter your admin email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="h-11"
@@ -92,19 +100,16 @@ export default function Login() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="password">Admin ID (Password)</Label>
+              <Label htmlFor="password">Password</Label>
               <Input
                 id="password"
                 type="password"
-                placeholder="ADM-XXX"
+                placeholder="Enter your password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 className="h-11"
                 required
               />
-              <p className="text-xs text-muted-foreground">
-                Use your unique Admin ID as password
-              </p>
             </div>
 
             <Button type="submit" className="w-full h-11" disabled={isLoading}>
@@ -112,16 +117,29 @@ export default function Login() {
             </Button>
           </form>
 
-          {/* Demo Credentials */}
+          {/* Demo Admin Accounts — clickable to auto-fill */}
           <div className="mt-6 p-4 rounded-lg bg-muted/50 border border-border">
-            <p className="text-sm font-medium text-foreground mb-2">Demo Credentials:</p>
-            <div className="space-y-1 text-sm text-muted-foreground">
-              <p>
-                <span className="font-medium">Super Admin:</span> james@laundryops.com / ADM-001
-              </p>
-              <p>
-                <span className="font-medium">Admin:</span> maria@laundryops.com / ADM-002
-              </p>
+            <p className="text-xs font-medium text-muted-foreground mb-3">Quick Login — click to auto-fill:</p>
+            <div className="space-y-2">
+              {demoAdminAccounts.map((demo) => (
+                <button
+                  key={demo.email}
+                  type="button"
+                  onClick={() => handleDemoClick(demo.email, demo.password)}
+                  className="w-full flex items-center gap-3 p-2.5 rounded-lg border border-border bg-card hover:bg-primary/5 hover:border-primary/30 transition-all text-left group cursor-pointer"
+                >
+                  <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 group-hover:bg-primary/20 transition-colors">
+                    <User className="w-4 h-4 text-primary" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-foreground truncate">{demo.name}</p>
+                    <p className="text-xs text-muted-foreground truncate">{demo.email}</p>
+                  </div>
+                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-primary/10 text-primary font-semibold flex-shrink-0 capitalize">
+                    {demo.role === 'employee' ? 'Employee' : 'Admin'}
+                  </span>
+                </button>
+              ))}
             </div>
           </div>
 

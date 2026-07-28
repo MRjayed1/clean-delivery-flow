@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Header } from '@/components/layout/Header';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import {
   Table,
@@ -18,16 +19,35 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Plus, Search, Building2, Eye } from 'lucide-react';
-import { mockCompanies, getPropertiesByCompanyId, Company } from '@/lib/mockData';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from '@/components/ui/dialog';
+import { Plus, Search, Building2, Eye, CheckCircle2, Trash2 } from 'lucide-react';
+import { mockCompanies as initialCompanies, getPropertiesByCompanyId, Company } from '@/lib/mockData';
 import { useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
 
 export default function Companies() {
+  const [companies, setCompanies] = useState<Company[]>(initialCompanies);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [justAdded, setJustAdded] = useState('');
   const navigate = useNavigate();
 
-  const filteredCompanies = mockCompanies.filter((company) => {
+  // Add Company form state
+  const [newName, setNewName] = useState('');
+  const [newContact, setNewContact] = useState('');
+  const [newEmail, setNewEmail] = useState('');
+  const [newPhone, setNewPhone] = useState('');
+  const [newAddress, setNewAddress] = useState('');
+
+  const filteredCompanies = companies.filter((company) => {
     const matchesSearch =
       company.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       company.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -49,11 +69,56 @@ export default function Companies() {
     navigate(`/properties?company=${companyId}`);
   };
 
+  const handleAddCompany = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newName.trim() || !newContact.trim()) return;
+
+    const newId = `COMP-${String(companies.length + 1).padStart(3, '0')}`;
+    const newCompany: Company = {
+      id: newId,
+      name: newName.trim(),
+      contactPerson: newContact.trim(),
+      contactEmail: newEmail.trim() || `${newName.trim().toLowerCase().replace(/\s+/g, '')}@company.com`,
+      contactPhone: newPhone.trim() || '+880 0000-000000',
+      address: newAddress.trim() || 'Dhaka, Bangladesh',
+      totalProperties: 0,
+      activeProperties: 0,
+      status: 'active',
+    };
+
+    setCompanies((prev) => [newCompany, ...prev]);
+    setJustAdded(newId);
+    setTimeout(() => setJustAdded(''), 3000);
+
+    // Reset form
+    setNewName('');
+    setNewContact('');
+    setNewEmail('');
+    setNewPhone('');
+    setNewAddress('');
+    setIsAddDialogOpen(false);
+  };
+
+  const handleDeleteCompany = (id: string) => {
+    if (window.confirm('Are you sure you want to remove this company?')) {
+      setCompanies((prev) => prev.filter((c) => c.id !== id));
+      toast.success('Company removed successfully');
+    }
+  };
+
   return (
     <div className="min-h-screen">
       <Header title="Companies" description="Manage all client companies" />
 
       <main className="p-6 space-y-6 animate-fade-in">
+        {/* Success toast */}
+        {justAdded && (
+          <div className="flex items-center gap-2 p-3 rounded-lg bg-emerald-500/10 text-emerald-700 text-sm font-semibold border border-emerald-500/20 animate-fade-in">
+            <CheckCircle2 className="w-4 h-4" />
+            <span>Company {justAdded} added successfully!</span>
+          </div>
+        )}
+
         {/* Stats Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div className="dashboard-card">
@@ -63,7 +128,7 @@ export default function Companies() {
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Total Companies</p>
-                <p className="text-2xl font-semibold">{mockCompanies.length}</p>
+                <p className="text-2xl font-semibold">{companies.length}</p>
               </div>
             </div>
           </div>
@@ -75,7 +140,7 @@ export default function Companies() {
               <div>
                 <p className="text-sm text-muted-foreground">Active Companies</p>
                 <p className="text-2xl font-semibold">
-                  {mockCompanies.filter(c => c.status === 'active').length}
+                  {companies.filter(c => c.status === 'active').length}
                 </p>
               </div>
             </div>
@@ -88,7 +153,7 @@ export default function Companies() {
               <div>
                 <p className="text-sm text-muted-foreground">Total Properties</p>
                 <p className="text-2xl font-semibold">
-                  {mockCompanies.reduce((acc, c) => acc + c.totalProperties, 0)}
+                  {companies.reduce((acc, c) => acc + c.totalProperties, 0)}
                 </p>
               </div>
             </div>
@@ -118,7 +183,7 @@ export default function Companies() {
               </SelectContent>
             </Select>
           </div>
-          <Button>
+          <Button onClick={() => setIsAddDialogOpen(true)}>
             <Plus className="w-4 h-4 mr-2" />
             Add Company
           </Button>
@@ -139,9 +204,12 @@ export default function Companies() {
             </TableHeader>
             <TableBody>
               {filteredCompanies.map((company) => {
-                const propertyCount = getPropertiesByCompanyId(company.id).length;
+                const propertyCount = getPropertiesByCompanyId(company.id).length || company.totalProperties;
                 return (
-                  <TableRow key={company.id} className="table-row cursor-pointer">
+                  <TableRow
+                    key={company.id}
+                    className={`table-row cursor-pointer ${justAdded === company.id ? 'bg-emerald-500/5 ring-1 ring-emerald-500/20' : ''}`}
+                  >
                     <TableCell className="pl-6 font-medium">{company.id}</TableCell>
                     <TableCell>
                       <div>
@@ -165,14 +233,24 @@ export default function Companies() {
                     </TableCell>
                     <TableCell>{getStatusBadge(company.status)}</TableCell>
                     <TableCell className="pr-6 text-right">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleViewProperties(company.id)}
-                      >
-                        <Eye className="w-4 h-4 mr-2" />
-                        View Properties
-                      </Button>
+                      <div className="flex gap-2 justify-end">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleViewProperties(company.id)}
+                        >
+                          <Eye className="w-4 h-4 mr-2" />
+                          View Properties
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="text-destructive hover:bg-destructive/10"
+                          onClick={() => handleDeleteCompany(company.id)}
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
                     </TableCell>
                   </TableRow>
                 );
@@ -187,6 +265,89 @@ export default function Companies() {
           </div>
         )}
       </main>
+
+      {/* Add Company Dialog */}
+      <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Building2 className="w-5 h-5 text-primary" />
+              Add New Company
+            </DialogTitle>
+            <DialogDescription>
+              Register a new client company to manage their properties and collections.
+            </DialogDescription>
+          </DialogHeader>
+
+          <form onSubmit={handleAddCompany} className="space-y-4 mt-2">
+            <div className="space-y-2">
+              <Label htmlFor="company-name">Company Name *</Label>
+              <Input
+                id="company-name"
+                placeholder="e.g. Sunshine Properties LLC"
+                value={newName}
+                onChange={(e) => setNewName(e.target.value)}
+                required
+              />
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="contact-person">Contact Person *</Label>
+                <Input
+                  id="contact-person"
+                  placeholder="e.g. John Smith"
+                  value={newContact}
+                  onChange={(e) => setNewContact(e.target.value)}
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="contact-email">Contact Email</Label>
+                <Input
+                  id="contact-email"
+                  type="email"
+                  placeholder="e.g. john@company.com"
+                  value={newEmail}
+                  onChange={(e) => setNewEmail(e.target.value)}
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="contact-phone">Contact Phone</Label>
+                <Input
+                  id="contact-phone"
+                  type="tel"
+                  placeholder="e.g. +880 1712-345678"
+                  value={newPhone}
+                  onChange={(e) => setNewPhone(e.target.value)}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="company-address">Address</Label>
+                <Input
+                  id="company-address"
+                  placeholder="e.g. Gulshan 2, Dhaka"
+                  value={newAddress}
+                  onChange={(e) => setNewAddress(e.target.value)}
+                />
+              </div>
+            </div>
+
+            <DialogFooter className="pt-4">
+              <Button type="button" variant="outline" onClick={() => setIsAddDialogOpen(false)}>
+                Cancel
+              </Button>
+              <Button type="submit" disabled={!newName.trim() || !newContact.trim()}>
+                <Plus className="w-4 h-4 mr-2" />
+                Add Company
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

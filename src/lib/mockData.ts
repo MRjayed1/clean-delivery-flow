@@ -35,7 +35,7 @@ export interface Admin {
   name: string;
   email: string;
   phone: string;
-  role: 'super-admin' | 'admin';
+  role: 'super-admin' | 'employee';
   assignedCompanies: string[];
   lastLogin: string;
   status: 'active' | 'inactive';
@@ -60,7 +60,7 @@ export interface CollectionItem {
 }
 
 export interface ExtendedCollection extends Omit<Collection, 'status'> {
-  status: 'running' | 'upcoming' | 'overdue';
+  status: 'running' | 'upcoming' | 'overdue' | 'completed';
   propertyName: string;
   manualOverride: boolean;
   deliveryDate: string;
@@ -305,12 +305,11 @@ export const mockProperties: Property[] = [
   },
 ];
 
-// Admin Users (10-15 admins with individual credentials)
 export const mockAdmins: Admin[] = [
   {
     id: 'ADM-001',
-    name: 'James Rodriguez',
-    email: 'james@laundryops.com',
+    name: 'Jayed&Kamran',
+    email: 'superadmin1@laundry.com',
     phone: '+1 (305) 555-1001',
     role: 'super-admin',
     assignedCompanies: ['COMP-001', 'COMP-002', 'COMP-003', 'COMP-004', 'COMP-005', 'COMP-006'],
@@ -319,110 +318,110 @@ export const mockAdmins: Admin[] = [
   },
   {
     id: 'ADM-002',
-    name: 'Maria Garcia',
+    name: 'Employee 1',
     email: 'maria@laundryops.com',
     phone: '+1 (305) 555-1002',
-    role: 'admin',
+    role: 'employee',
     assignedCompanies: ['COMP-001', 'COMP-002'],
     lastLogin: '2026-03-16 08:45 AM',
     status: 'active',
   },
   {
     id: 'ADM-003',
-    name: 'Carlos Martinez',
+    name: 'Employee 2',
     email: 'carlos@laundryops.com',
     phone: '+1 (305) 555-1003',
-    role: 'admin',
+    role: 'employee',
     assignedCompanies: ['COMP-003', 'COMP-004'],
     lastLogin: '2026-03-15 04:20 PM',
     status: 'active',
   },
   {
     id: 'ADM-004',
-    name: 'Ana Lopez',
+    name: 'Employee 3',
     email: 'ana@laundryops.com',
     phone: '+1 (305) 555-1004',
-    role: 'admin',
+    role: 'employee',
     assignedCompanies: ['COMP-005', 'COMP-006'],
     lastLogin: '2026-03-16 10:15 AM',
     status: 'active',
   },
   {
     id: 'ADM-005',
-    name: 'David Chen',
+    name: 'Employee 4',
     email: 'david@laundryops.com',
     phone: '+1 (305) 555-1005',
-    role: 'admin',
+    role: 'employee',
     assignedCompanies: ['COMP-001', 'COMP-003'],
     lastLogin: '2026-03-14 02:30 PM',
     status: 'active',
   },
   {
     id: 'ADM-006',
-    name: 'Sofia Williams',
+    name: 'Employee 5',
     email: 'sofia@laundryops.com',
     phone: '+1 (305) 555-1006',
-    role: 'admin',
+    role: 'employee',
     assignedCompanies: ['COMP-002', 'COMP-004'],
     lastLogin: '2026-03-16 07:00 AM',
     status: 'active',
   },
   {
     id: 'ADM-007',
-    name: 'Michael Brown',
+    name: 'Employee 6',
     email: 'michael@laundryops.com',
     phone: '+1 (305) 555-1007',
-    role: 'admin',
+    role: 'employee',
     assignedCompanies: ['COMP-005'],
     lastLogin: '2026-03-15 11:45 AM',
     status: 'active',
   },
   {
     id: 'ADM-008',
-    name: 'Emily Davis',
+    name: 'Employee 7',
     email: 'emily@laundryops.com',
     phone: '+1 (305) 555-1008',
-    role: 'admin',
+    role: 'employee',
     assignedCompanies: ['COMP-006', 'COMP-001'],
     lastLogin: '2026-03-13 03:00 PM',
     status: 'inactive',
   },
   {
     id: 'ADM-009',
-    name: 'Robert Wilson',
+    name: 'Employee 8',
     email: 'robert@laundryops.com',
     phone: '+1 (305) 555-1009',
-    role: 'admin',
+    role: 'employee',
     assignedCompanies: ['COMP-002', 'COMP-003'],
     lastLogin: '2026-03-16 09:00 AM',
     status: 'active',
   },
   {
     id: 'ADM-010',
-    name: 'Jessica Taylor',
+    name: 'Employee 9',
     email: 'jessica@laundryops.com',
     phone: '+1 (305) 555-1010',
-    role: 'admin',
+    role: 'employee',
     assignedCompanies: ['COMP-004', 'COMP-005'],
     lastLogin: '2026-03-15 05:30 PM',
     status: 'active',
   },
   {
     id: 'ADM-011',
-    name: 'Daniel Anderson',
+    name: 'Employee 10',
     email: 'daniel@laundryops.com',
     phone: '+1 (305) 555-1011',
-    role: 'admin',
+    role: 'employee',
     assignedCompanies: ['COMP-001'],
     lastLogin: '2026-03-14 10:00 AM',
     status: 'active',
   },
   {
     id: 'ADM-012',
-    name: 'Laura Thompson',
+    name: 'Employee 11',
     email: 'laura@laundryops.com',
     phone: '+1 (305) 555-1012',
-    role: 'admin',
+    role: 'employee',
     assignedCompanies: ['COMP-003', 'COMP-006'],
     lastLogin: '2026-03-16 08:30 AM',
     status: 'active',
@@ -436,18 +435,18 @@ export const mockCollections: ExtendedCollection[] = [
     propertyName: 'Beachfront Villa',
     propertyAddress: '123 Ocean Drive, Miami, FL 33139',
     collectionType: 'scheduled',
-    deadline: '2026-03-20',
+    deadline: '2026-07-30',
     status: 'running',
     priority: 'normal',
     manualOverride: false,
-    deliveryDate: '2026-03-06',
+    deliveryDate: '2026-07-16',
     items: [
       {
         id: 'ITEM-001',
         description: 'Initial bed linen collection',
         quantities: { single: 2, double: 1, king: 1, superking: 0 },
-        imagePreviews: [],
-        addedAt: '2026-03-06',
+        imagePreviews: ['data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg=='],
+        addedAt: '2026-07-16',
       }
     ],
   },
@@ -457,18 +456,18 @@ export const mockCollections: ExtendedCollection[] = [
     propertyName: 'Downtown Loft',
     propertyAddress: '456 Main Street, Miami, FL 33130',
     collectionType: 'scheduled',
-    deadline: '2026-03-01',
+    deadline: '2026-06-15',
     status: 'overdue',
     priority: 'urgent',
     manualOverride: false,
-    deliveryDate: '2026-02-15',
+    deliveryDate: '2026-06-01',
     items: [
       {
         id: 'ITEM-002',
         description: 'Full property turnover',
         quantities: { single: 0, double: 2, king: 0, superking: 0 },
         imagePreviews: [],
-        addedAt: '2026-02-15',
+        addedAt: '2026-06-01',
       }
     ],
   },
@@ -478,18 +477,18 @@ export const mockCollections: ExtendedCollection[] = [
     propertyName: 'Sunset Apartment',
     propertyAddress: '789 Bay Road, Miami Beach, FL 33140',
     collectionType: 'scheduled',
-    deadline: '2026-03-25',
+    deadline: '2026-08-05',
     status: 'upcoming',
     priority: 'normal',
     manualOverride: true,
-    deliveryDate: '2026-03-11',
+    deliveryDate: '2026-07-22',
     items: [
       {
         id: 'ITEM-003',
         description: 'Guest change request',
         quantities: { single: 1, double: 0, king: 1, superking: 0 },
         imagePreviews: [],
-        addedAt: '2026-03-11',
+        addedAt: '2026-07-22',
       }
     ],
   },
@@ -499,18 +498,18 @@ export const mockCollections: ExtendedCollection[] = [
     propertyName: 'Luxury Penthouse',
     propertyAddress: '800 Bay Road, Miami Beach, FL 33140',
     collectionType: 'scheduled',
-    deadline: '2026-03-18',
+    deadline: '2026-07-28',
     status: 'running',
     priority: 'high',
     manualOverride: false,
-    deliveryDate: '2026-03-04',
+    deliveryDate: '2026-07-14',
     items: [
       {
         id: 'ITEM-004',
         description: 'Premium service collection',
         quantities: { single: 0, double: 0, king: 2, superking: 1 },
         imagePreviews: [],
-        addedAt: '2026-03-04',
+        addedAt: '2026-07-14',
       }
     ],
   },
@@ -520,18 +519,18 @@ export const mockCollections: ExtendedCollection[] = [
     propertyName: 'Harbor View Suite',
     propertyAddress: '321 Marina Way, Key Biscayne, FL 33149',
     collectionType: 'scheduled',
-    deadline: '2026-04-01',
+    deadline: '2026-08-12',
     status: 'upcoming',
     priority: 'normal',
     manualOverride: true,
-    deliveryDate: '2026-03-18',
+    deliveryDate: '2026-07-29',
     items: [
       {
         id: 'ITEM-005',
         description: 'Weekly scheduled collection',
         quantities: { single: 2, double: 2, king: 0, superking: 0 },
         imagePreviews: [],
-        addedAt: '2026-03-18',
+        addedAt: '2026-07-29',
       }
     ],
   },
@@ -541,18 +540,81 @@ export const mockCollections: ExtendedCollection[] = [
     propertyName: 'Marina Apartment',
     propertyAddress: '325 Marina Way, Key Biscayne, FL 33149',
     collectionType: 'scheduled',
-    deadline: '2026-03-22',
+    deadline: '2026-07-29',
     status: 'running',
     priority: 'normal',
     manualOverride: false,
-    deliveryDate: '2026-03-08',
+    deliveryDate: '2026-07-15',
     items: [
       {
         id: 'ITEM-006',
         description: 'Standard collection',
         quantities: { single: 1, double: 1, king: 1, superking: 0 },
         imagePreviews: [],
-        addedAt: '2026-03-08',
+        addedAt: '2026-07-15',
+      }
+    ],
+  },
+  {
+    id: 'COL-007',
+    propertyId: 'PROP-003',
+    propertyName: 'Seaside Retreat',
+    propertyAddress: '130 Ocean Drive, Miami, FL 33139',
+    collectionType: 'scheduled',
+    deadline: '2026-06-25',
+    status: 'overdue',
+    priority: 'high',
+    manualOverride: false,
+    deliveryDate: '2026-06-11',
+    items: [
+      {
+        id: 'ITEM-007',
+        description: 'Deep clean collection',
+        quantities: { single: 2, double: 2, king: 0, superking: 0 },
+        imagePreviews: [],
+        addedAt: '2026-06-11',
+      }
+    ],
+  },
+  {
+    id: 'COL-008',
+    propertyId: 'PROP-011',
+    propertyName: 'Palm Heights',
+    propertyAddress: '555 Palm Avenue, Coral Gables, FL 33134',
+    collectionType: 'scheduled',
+    deadline: '2026-07-10',
+    status: 'overdue',
+    priority: 'normal',
+    manualOverride: false,
+    deliveryDate: '2026-06-26',
+    items: [
+      {
+        id: 'ITEM-008',
+        description: 'Regular rotation',
+        quantities: { single: 0, double: 1, king: 1, superking: 0 },
+        imagePreviews: [],
+        addedAt: '2026-06-26',
+      }
+    ],
+  },
+  {
+    id: 'COL-009',
+    propertyId: 'PROP-013',
+    propertyName: 'Urban Loft',
+    propertyAddress: '1205 Brickell Bay Dr, Miami, FL 33131',
+    collectionType: 'scheduled',
+    deadline: '2026-07-20',
+    status: 'overdue',
+    priority: 'normal',
+    manualOverride: true,
+    deliveryDate: '2026-07-06',
+    items: [
+      {
+        id: 'ITEM-009',
+        description: 'Emergency extra towels',
+        quantities: { single: 0, double: 0, king: 0, superking: 0 },
+        imagePreviews: [],
+        addedAt: '2026-07-06',
       }
     ],
   },
@@ -617,13 +679,45 @@ export const getAdminById = (adminId: string): Admin | undefined => {
   return mockAdmins.find(admin => admin.id === adminId);
 };
 
+// Demo admin accounts (shown on login page, clickable to auto-fill)
+export const demoAdminAccounts = [
+  { email: 'admin.rafiq@gmail.com', password: 'rafiq2026', name: 'Employee Rafiqul', role: 'employee' as const },
+  { email: 'admin.nusrat@gmail.com', password: 'nusrat2026', name: 'Employee Nusrat', role: 'employee' as const },
+  { email: 'employee.john@gmail.com', password: 'john2026', name: 'Employee John', role: 'employee' as const },
+  { email: 'employee.sarah@gmail.com', password: 'sarah2026', name: 'Employee Sarah', role: 'employee' as const },
+];
+
 // Helper function to authenticate admin
+// Super admin (hidden) + demo admins (visible on login page)
 export const authenticateAdmin = (email: string, password: string): Admin | null => {
-  // In production, this would validate against a secure backend
-  const admin = mockAdmins.find(a => a.email === email && a.status === 'active');
-  // For demo purposes, password is the admin ID (e.g., ADM-001)
-  if (admin && password === admin.id) {
-    return admin;
+  // Super admin — credential NOT shown on login page
+  if (email === 'superadmin1@laundry.com' && password === 'admin123') {
+    return {
+      id: 'ADM-001',
+      name: 'Jayed&Kamran',
+      email: 'superadmin1@laundry.com',
+      phone: '+880 1700-000001',
+      role: 'super-admin',
+      assignedCompanies: ['COMP-001', 'COMP-002', 'COMP-003', 'COMP-004', 'COMP-005', 'COMP-006'],
+      lastLogin: new Date().toLocaleString(),
+      status: 'active',
+    };
   }
+
+  // Demo admin accounts
+  const demo = demoAdminAccounts.find(a => a.email === email && a.password === password);
+  if (demo) {
+    return {
+      id: 'ADM-' + String(demoAdminAccounts.indexOf(demo) + 10).padStart(3, '0'),
+      name: demo.name,
+      email: demo.email,
+      phone: '+880 1700-000000',
+      role: demo.role,
+      assignedCompanies: ['COMP-001', 'COMP-002', 'COMP-003'],
+      lastLogin: new Date().toLocaleString(),
+      status: 'active',
+    };
+  }
+
   return null;
 };

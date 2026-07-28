@@ -10,19 +10,23 @@ import {
   Menu,
   X,
   Shirt,
+  ShoppingBag,
+  ClipboardList,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 
 const navItems = [
-  { path: '/', label: 'Dashboard', icon: LayoutDashboard },
-  { path: '/companies', label: 'Companies', icon: Building2 },
+  { path: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, requiredRole: 'super-admin' },
+  { path: '/', label: 'Customer Store', icon: ShoppingBag },
+  { path: '/customer-orders', label: 'Customer Orders', icon: ClipboardList },
+  { path: '/companies', label: 'Companies', icon: Building2, requiredRole: 'super-admin' },
   { path: '/properties', label: 'Properties', icon: Building2 },
   { path: '/collections', label: 'Collections', icon: Truck },
-  { path: '/admin', label: 'Admin', icon: Users },
-  { path: '/reports', label: 'Reports', icon: BarChart3 },
-  { path: '/settings', label: 'Settings', icon: Settings },
+  { path: '/admin', label: 'Admin', icon: Users, requiredRole: 'super-admin' },
+  { path: '/reports', label: 'Reports', icon: BarChart3, requiredRole: 'super-admin' },
+  { path: '/settings', label: 'Settings', icon: Settings, requiredRole: 'super-admin' },
 ];
 
 export function Sidebar() {
@@ -93,6 +97,15 @@ export function Sidebar() {
           {/* Navigation */}
           <nav className="flex-1 px-4 py-6 space-y-1 overflow-y-auto">
             {navItems.map((item) => {
+              let currentAdmin = null;
+              try {
+                currentAdmin = JSON.parse(localStorage.getItem('currentAdmin') || '{}');
+              } catch (e) {}
+
+              if (item.requiredRole && currentAdmin?.role !== item.requiredRole) {
+                return null;
+              }
+
               const isActive = location.pathname === item.path;
               const Icon = item.icon;
 
@@ -114,16 +127,45 @@ export function Sidebar() {
           </nav>
 
           {/* Footer */}
-          <div className="px-4 py-4 border-t border-sidebar-border">
+          <div className="px-4 py-4 border-t border-sidebar-border space-y-2">
             <div className="flex items-center gap-3 px-3 py-2">
               <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-                <span className="text-sm font-medium text-primary">AD</span>
+                <span className="text-sm font-medium text-primary">
+                  {(() => {
+                    try {
+                      const admin = JSON.parse(localStorage.getItem('currentAdmin') || '{}');
+                      return admin.name ? admin.name.split(' ').map((n: string) => n[0]).join('') : 'AD';
+                    } catch { return 'AD'; }
+                  })()}
+                </span>
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-sidebar-foreground truncate">Admin User</p>
-                <p className="text-xs text-sidebar-muted truncate">admin@laundryops.com</p>
+                <p className="text-sm font-medium text-sidebar-foreground truncate">
+                  {(() => {
+                    try {
+                      return JSON.parse(localStorage.getItem('currentAdmin') || '{}').name || 'Admin User';
+                    } catch { return 'Admin User'; }
+                  })()}
+                </p>
+                <p className="text-xs text-sidebar-muted truncate">
+                  {(() => {
+                    try {
+                      return JSON.parse(localStorage.getItem('currentAdmin') || '{}').email || 'admin@laundryops.com';
+                    } catch { return 'admin@laundryops.com'; }
+                  })()}
+                </p>
               </div>
             </div>
+            <button
+              onClick={() => {
+                localStorage.removeItem('currentAdmin');
+                window.location.href = '/login';
+              }}
+              className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium text-destructive/80 hover:text-destructive hover:bg-destructive/5 transition-colors"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+              Sign Out
+            </button>
           </div>
         </div>
       </aside>

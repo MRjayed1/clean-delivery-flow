@@ -110,8 +110,12 @@ export function CollectionDetailsModal({
                           </div>
                         </div>
 
+                        <div className="text-[10px] text-muted-foreground mt-2">
+                          Debug: Images array length is {item.imagePreviews ? item.imagePreviews.length : 0}
+                        </div>
+
                         {item.imagePreviews && item.imagePreviews.length > 0 && (
-                          <div className="space-y-2">
+                          <div className="space-y-2 mt-2">
                             <Label className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Images</Label>
                             <div className="grid grid-cols-4 gap-3 mt-1">
                               {item.imagePreviews.map((preview, i) => (
