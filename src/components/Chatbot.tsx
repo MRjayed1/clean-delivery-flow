@@ -18,6 +18,15 @@ const STORAGE_KEY = "laundryops_chat_messages";
 // API endpoint — reads from env or falls back to localhost
 const API_URL = import.meta.env.VITE_CHAT_API_URL || "http://localhost:8000/api/chat";
 
+// Base URL for health/warm-up pings (strip "/api/chat" from the end)
+const BASE_URL = API_URL.replace(/\/api\/chat$/, "");
+
+// Timeout for fetch requests (60s to survive Render free tier cold starts)
+const FETCH_TIMEOUT_MS = 60000;
+
+// Number of automatic retries before showing error
+const MAX_RETRIES = 1;
+
 /**
  * Render message content with basic markdown support.
  * Handles: **bold**, *italic*, `code`, [links](url), and line breaks.
@@ -98,6 +107,7 @@ function renderMarkdown(text: string) {
 
 const Chatbot = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const [isWarmingUp, setIsWarmingUp] = useState(false);
   const [messages, setMessages] = useState<Message[]>(() => {
     // --- IMPROVEMENT: Restore messages from sessionStorage ---
     // This preserves the conversation if the user navigates between pages.
@@ -146,6 +156,30 @@ const Chatbot = () => {
     }
   }, [messages]);
 
+  // --- FIX: Warm-up ping when chat window opens ---
+  // Render free tier spins down after inactivity. This pre-wakes the server
+  // so it's ready by the time the user types and sends a message.
+  useEffect(() => {
+    if (isOpen) {
+      setIsWarmingUp(true);
+      fetch(`${BASE_URL}/`, { method: "GET" })
+        .then(() => setIsWarmingUp(false))
+        .catch(() => setIsWarmingUp(false));
+    }
+  }, [isOpen]);
+
+  // --- FIX: Fetch with timeout to survive Render cold starts ---
+  const fetchWithTimeout = async (url: string, options: RequestInit, timeoutMs: number): Promise<Response> => {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
+    try {
+      const response = await fetch(url, { ...options, signal: controller.signal });
+      return response;
+    } finally {
+      clearTimeout(timer);
+    }
+  };
+
   const sendMessage = async (retryContent?: string) => {
     const content = retryContent || inputValue.trim();
     if (!content || isLoading) return;
@@ -161,6 +195,9 @@ const Chatbot = () => {
     if (!retryContent) setInputValue("");
     setIsLoading(true);
 
+    // Show "waking up" text after 8 seconds of waiting
+    const warmupTimer = setTimeout(() => setIsWarmingUp(true), 8000);
+
     try {
       // Prepare conversation history for API
       const conversationHistory = messages.map((msg) => ({
@@ -168,43 +205,61 @@ const Chatbot = () => {
         content: msg.content,
       }));
 
-      const response = await fetch(API_URL, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          message: userMessage.content,
-          conversation_history: conversationHistory,
-        }),
+      const requestBody = JSON.stringify({
+        message: userMessage.content,
+        conversation_history: conversationHistory,
       });
 
-      if (!response.ok) {
-        throw new Error("Failed to get response");
-      }
-
-      const data = await response.json();
-
-      const assistantMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        role: "assistant",
-        content: data.response,
-        timestamp: new Date(),
+      const requestOptions: RequestInit = {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: requestBody,
       };
 
-      setMessages((prev) => [...prev, assistantMessage]);
-    } catch (error) {
-      console.error("Error sending message:", error);
-      // --- IMPROVEMENT: Error message with retry capability ---
+      // --- FIX: Auto-retry on failure (handles cold start timeouts) ---
+      let lastError: unknown;
+      for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
+        try {
+          const response = await fetchWithTimeout(API_URL, requestOptions, FETCH_TIMEOUT_MS);
+
+          if (!response.ok) {
+            throw new Error(`Server error: ${response.status}`);
+          }
+
+          const data = await response.json();
+
+          const assistantMessage: Message = {
+            id: (Date.now() + 1).toString(),
+            role: "assistant",
+            content: data.response,
+            timestamp: new Date(),
+          };
+
+          setMessages((prev) => [...prev, assistantMessage]);
+          return; // Success — exit early
+        } catch (err) {
+          lastError = err;
+          console.warn(`Chat attempt ${attempt + 1} failed:`, err);
+          // If we have retries left, wait 2s then try again
+          if (attempt < MAX_RETRIES) {
+            await new Promise((r) => setTimeout(r, 2000));
+          }
+        }
+      }
+
+      // All retries exhausted — show error
+      console.error("All chat attempts failed:", lastError);
       const fallbackMessage: Message = {
         id: (Date.now() + 1).toString(),
         role: "assistant",
-        content: "I'm sorry, I'm having trouble connecting right now. Please try again or contact our support team at support@laundryops.com.",
+        content: "I'm sorry, I'm having trouble connecting right now. Please try again in a moment — the server may be waking up. You can also contact our support team at support@laundryops.com.",
         timestamp: new Date(),
         error: true,
       };
       setMessages((prev) => [...prev, fallbackMessage]);
     } finally {
+      clearTimeout(warmupTimer);
+      setIsWarmingUp(false);
       setIsLoading(false);
     }
   };
@@ -320,7 +375,7 @@ const Chatbot = () => {
                 </div>
               ))}
 
-              {/* --- IMPROVEMENT: Animated typing indicator --- */}
+              {/* --- IMPROVEMENT: Animated typing indicator with warm-up status --- */}
               {isLoading && (
                 <div className="flex gap-3">
                   <div className="w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center flex-shrink-0">
@@ -332,6 +387,9 @@ const Chatbot = () => {
                       <span className="w-2 h-2 bg-gray-400 dark:bg-gray-500 rounded-full animate-bounce [animation-delay:150ms]" />
                       <span className="w-2 h-2 bg-gray-400 dark:bg-gray-500 rounded-full animate-bounce [animation-delay:300ms]" />
                     </div>
+                    {isWarmingUp && (
+                      <p className="text-xs text-gray-400 mt-1.5">Waking up server, please wait...</p>
+                    )}
                   </div>
                 </div>
               )}
